@@ -1,0 +1,31 @@
+{
+	"name": "sol-spark",
+	"private": true,
+	"workspaces": [
+		"apps/*",
+		"packages/*"
+	],
+	"scripts": {
+		"check": "biome check --write .",
+		"ruler:apply": "bunx @intellectronica/ruler@latest apply --local-only",
+		"dev": "bun run --filter '*' dev",
+		"build": "bun run --filter '*' build",
+		"check-types": "bun run --filter '*' check-types",
+		"dev:native": "bun run --filter native dev",
+		"dev:web": "bun run --filter web dev",
+		"dev:server": "bun run --filter server dev"
+	},
+	"dependencies": {},
+	"devDependencies": {
+		"@biomejs/biome": "2.2.0",
+		"ultracite": "5.2.4",
+		"husky": "^9.1.7",
+		"lint-staged": "^16.1.2"
+	},
+	"lint-staged": {
+		"*.{js,jsx,ts,tsx,json,jsonc,css,scss,md,mdx}": [
+			"bun x ultracite format"
+		]
+	},
+	"packageManager": "bun@1.2.17"
+}
