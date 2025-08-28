@@ -1,0 +1,50 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.2.2/schema.json",
+  "files": {
+    "ignoreUnknown": false,
+    "includes": [
+      "**",
+      "!**/.next",
+      "!**/dist",
+      "!**/.turbo",
+      "!**/dev-dist",
+      "!**/.zed",
+      "!**/.vscode",
+      "!**/routeTree.gen.ts",
+      "!**/src-tauri",
+      "!**/.nuxt",
+      "!bts.jsonc",
+      "!**/.expo",
+      "!**/.wrangler",
+      "!**/.alchemy",
+      "!**/wrangler.jsonc",
+      "!**/.source",
+      "!**/anchor_project"
+    ]
+  },
+  "extends": ["ultracite"],
+  "linter": {
+    "rules": {
+      "style": {
+        "noMagicNumbers": "off",
+        "useBlockStatements": "off"
+      },
+      "suspicious": {
+        "noConsole": "off",
+        "noUnknownAtRules": "off"
+      },
+      "nursery": {
+        "useConsistentTypeDefinitions": "off",
+        "useSortedClasses": "error"
+      }
+    }
+  },
+  "css": {
+    "formatter": {
+      "enabled": true
+    },
+    "linter": {
+      "enabled": true
+    }
+  }
+}
