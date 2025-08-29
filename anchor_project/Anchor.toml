@@ -6,7 +6,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-dealforge = "JAVuBXeBZqXNtS73azhBDAoYaaAFfo4gWXoZe2e7Jf8H"
+dealforge = "FVszYwFasoQN81yjF4LMCYSzKaGUWkf9KTb3wTrs7mBd"
 
 [registry]
 url = "https://api.apr.dev"

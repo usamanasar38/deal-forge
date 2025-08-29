@@ -5,19 +5,28 @@
  * IDL can be found at `target/idl/dealforge.json`.
  */
 export type Dealforge = {
-  address: "JAVuBXeBZqXNtS73azhBDAoYaaAFfo4gWXoZe2e7Jf8H";
-  metadata: {
-    name: "dealforge";
-    version: "0.1.0";
-    spec: "0.1.0";
-    description: "Created with Anchor";
-  };
-  instructions: [
+  "address": "FVszYwFasoQN81yjF4LMCYSzKaGUWkf9KTb3wTrs7mBd",
+  "metadata": {
+    "name": "dealforge",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
     {
-      name: "greet";
-      discriminator: [203, 194, 3, 150, 228, 58, 181, 62];
-      accounts: [];
-      args: [];
-    },
-  ];
+      "name": "greet",
+      "discriminator": [
+        203,
+        194,
+        3,
+        150,
+        228,
+        58,
+        181,
+        62
+      ],
+      "accounts": [],
+      "args": []
+    }
+  ]
 };

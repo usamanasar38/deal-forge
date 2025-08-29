@@ -16,7 +16,7 @@ import {
 import type { ParsedGreetInstruction } from "../instructions";
 
 export const DEALFORGE_PROGRAM_ADDRESS =
-  "JAVuBXeBZqXNtS73azhBDAoYaaAFfo4gWXoZe2e7Jf8H" as Address<"JAVuBXeBZqXNtS73azhBDAoYaaAFfo4gWXoZe2e7Jf8H">;
+  "FVszYwFasoQN81yjF4LMCYSzKaGUWkf9KTb3wTrs7mBd" as Address<"FVszYwFasoQN81yjF4LMCYSzKaGUWkf9KTb3wTrs7mBd">;
 
 export enum DealforgeInstruction {
   Greet = 0,
@@ -43,7 +43,7 @@ export function identifyDealforgeInstruction(
 }
 
 export type ParsedDealforgeInstruction<
-  TProgram extends string = "JAVuBXeBZqXNtS73azhBDAoYaaAFfo4gWXoZe2e7Jf8H",
+  TProgram extends string = "FVszYwFasoQN81yjF4LMCYSzKaGUWkf9KTb3wTrs7mBd",
 > = {
   instructionType: DealforgeInstruction.Greet;
 } & ParsedGreetInstruction<TProgram>;
