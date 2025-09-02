@@ -1,3 +1,4 @@
+use super::shared::transfer_tokens;
 use crate::state::*;
 use anchor_lang::prelude::*;
 use anchor_lang::Discriminator;
@@ -55,4 +56,21 @@ pub struct MakeOffer<'info> {
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program: Interface<'info, TokenInterface>,
     pub system_program: Program<'info, System>,
+}
+
+pub fn handler(
+    context: Context<MakeOffer>,
+    offered_amount: u64,
+    requested_amount: u64,
+) -> Result<()> {
+    transfer_tokens(
+        &context.accounts.maker_offered_ata,
+        &context.accounts.vault,
+        &offered_amount,
+        &context.accounts.offered_mint,
+        &context.accounts.maker.to_account_info(),
+        &context.accounts.token_program,
+        None,
+    )?;
+    Ok(())
 }
