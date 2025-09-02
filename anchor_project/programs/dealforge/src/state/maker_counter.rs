@@ -4,6 +4,7 @@ use anchor_lang::prelude::*;
 pub const MAKER_COUNTER_SEED: &str = "MAKER_COUNTER_SEED";
 
 #[account]
+#[derive(InitSpace)]
 pub struct MakerCounter {
-    pub count: u64,
+    pub id: u64,
 }

@@ -30,7 +30,7 @@ pub struct MakeOffer<'info> {
     #[account(
         init_if_needed,
         payer = maker,
-        space = 8 + 8, // 8 discriminator + 8 count
+        space = MakerCounter::DISCRIMINATOR.len() + MakerCounter::INIT_SPACE,
         seeds = [MAKER_COUNTER_SEED.as_bytes(), maker.key().as_ref()],
         bump
     )]
@@ -40,7 +40,7 @@ pub struct MakeOffer<'info> {
         init,
         payer = maker,
         space = Offer::DISCRIMINATOR.len() + Offer::INIT_SPACE,
-        seeds = [OFFER_SEED.as_bytes(), maker.key().as_ref(), counter.count.to_le_bytes().as_ref()],
+        seeds = [OFFER_SEED.as_bytes(), maker.key().as_ref(), counter.id.to_le_bytes().as_ref()],
         bump
     )]
     pub offer: Account<'info, Offer>,
@@ -72,5 +72,6 @@ pub fn handler(
         &context.accounts.token_program,
         None,
     )?;
+
     Ok(())
 }
