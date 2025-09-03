@@ -27,11 +27,11 @@ pub struct Offer {
     /// The maker (offer creator)
     pub maker: Pubkey,
 
+    /// The token account that will hold maker’s offered tokens (PDA vault)
+    pub vault: Pubkey,
+
     /// The token mint being offered
     pub offered_mint: Pubkey,
-
-    /// The token account that will hold maker’s offered tokens (PDA vault)
-    pub offered_vault: Pubkey,
 
     /// Amount of offered tokens
     pub offered_amount: u64,
@@ -48,6 +48,6 @@ pub struct Offer {
     /// Status of the deal-forge (e.g., Active, Completed, Canceled)
     pub status: OfferStatus,
 
-    /// PDA bump seed (to derive offered_vault PDA)
+    /// PDA bump seed (to derive vault PDA)
     pub bump: u8,
 }

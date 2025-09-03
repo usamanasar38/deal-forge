@@ -73,5 +73,16 @@ pub fn handler(
         None,
     )?;
 
+    context.accounts.offer.set_inner(Offer {
+        id: context.accounts.counter.id,
+        maker: context.accounts.maker.key(),
+        offered_mint: context.accounts.offered_mint.key(),
+        requested_mint: context.accounts.requested_mint.key(),
+        vault: context.accounts.vault.key(),
+        status: OfferStatus::Active,
+        offered_amount,
+        requested_amount,
+        bump: context.bumps.offer,
+    });
     Ok(())
 }
