@@ -7,7 +7,7 @@
     "anchor-test": "cd anchor_project && anchor test",
     "ruler:apply": "bunx @intellectronica/ruler@latest apply --local-only",
     "build": "next build",
-    "codama:js": "codama run js -c ./anchor/codama.js",
+    "codama:js": "codama run js -c ./anchor_project/codama.js",
     "ci": "npm run build && npm run lint && npm run check && npm run codama:js",
     "dev": "next dev --turbopack",
     "check": "biome check --write .",
