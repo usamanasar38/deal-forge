@@ -84,5 +84,6 @@ pub fn handler(
         requested_amount,
         bump: context.bumps.offer,
     });
+    context.accounts.counter.id += 1;
     Ok(())
 }
