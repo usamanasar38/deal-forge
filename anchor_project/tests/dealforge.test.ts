@@ -6,13 +6,14 @@ import {
   type KeyPairSigner,
   signTransactionMessageWithSigners,
 } from "gill";
-// @ts-expect-error error TS2307 suggest setting `moduleResolution` but this is already configured
 import { loadKeypairSignerFromFile } from "gill/node";
-import { getGreetInstruction } from "../src";
 
-const { rpc, sendAndConfirmTransaction } = createSolanaClient({
-  urlOrMoniker: process.env.ANCHOR_PROVIDER_URL!,
-});
+/** Turn on debug mode */
+global.__GILL_DEBUG__ = true;
+
+/** Set the debug mode log level (default: `info`) */
+global.__GILL_DEBUG_LEVEL__ = "debug";
+
 describe("dealforge", () => {
   let payer: KeyPairSigner;
 
@@ -33,33 +34,3 @@ describe("dealforge", () => {
     console.log("Transaction signature:", sx);
   });
 });
-
-// Helper function to keep the tests DRY
-let latestBlockhash: Awaited<ReturnType<typeof getLatestBlockhash>> | undefined;
-async function getLatestBlockhash(): Promise<
-  Readonly<{ blockhash: Blockhash; lastValidBlockHeight: bigint }>
-> {
-  if (latestBlockhash) {
-    return latestBlockhash;
-  }
-  return await rpc
-    .getLatestBlockhash()
-    .send()
-    .then(({ value }) => value);
-}
-async function sendAndConfirm({
-  ix,
-  payer,
-}: {
-  ix: Instruction;
-  payer: KeyPairSigner;
-}) {
-  const tx = createTransaction({
-    feePayer: payer,
-    instructions: [ix],
-    version: "legacy",
-    latestBlockhash: await getLatestBlockhash(),
-  });
-  const signedTransaction = await signTransactionMessageWithSigners(tx);
-  return await sendAndConfirmTransaction(signedTransaction);
-}
