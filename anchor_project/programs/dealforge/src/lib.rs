@@ -13,10 +13,11 @@ pub mod dealforge {
 
     pub fn make_offer(
         context: Context<MakeOffer>,
+        id: u64,
         offered_amount: u64,
         requested_amount: u64,
     ) -> Result<()> {
-        make_offer::handler(context, offered_amount, requested_amount)
+        make_offer::handler(context, id, offered_amount, requested_amount)
     }
 }
 

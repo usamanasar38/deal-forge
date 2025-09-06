@@ -8,6 +8,7 @@ use anchor_spl::{
 };
 
 #[derive(Accounts)]
+#[instruction(id: u64)]
 pub struct MakeOffer<'info> {
     #[account(mut)]
     pub maker: Signer<'info>,
@@ -26,21 +27,11 @@ pub struct MakeOffer<'info> {
     )]
     pub maker_offered_ata: InterfaceAccount<'info, TokenAccount>,
 
-    // Counter PDA (1 per maker)
-    #[account(
-        init_if_needed,
-        payer = maker,
-        space = MakerCounter::DISCRIMINATOR.len() + MakerCounter::INIT_SPACE,
-        seeds = [MAKER_COUNTER_SEED.as_bytes(), maker.key().as_ref()],
-        bump
-    )]
-    pub counter: Account<'info, MakerCounter>,
-
     #[account(
         init,
         payer = maker,
         space = Offer::DISCRIMINATOR.len() + Offer::INIT_SPACE,
-        seeds = [OFFER_SEED.as_bytes(), maker.key().as_ref(), counter.id.to_le_bytes().as_ref()],
+        seeds = [OFFER_SEED.as_bytes(), maker.key().as_ref(), id.to_le_bytes().as_ref()],
         bump
     )]
     pub offer: Account<'info, Offer>,
@@ -60,6 +51,7 @@ pub struct MakeOffer<'info> {
 
 pub fn handler(
     context: Context<MakeOffer>,
+    id: u64,
     offered_amount: u64,
     requested_amount: u64,
 ) -> Result<()> {
@@ -74,7 +66,7 @@ pub fn handler(
     )?;
 
     context.accounts.offer.set_inner(Offer {
-        id: context.accounts.counter.id,
+        id,
         maker: context.accounts.maker.key(),
         offered_mint: context.accounts.offered_mint.key(),
         requested_mint: context.accounts.requested_mint.key(),
@@ -84,6 +76,5 @@ pub fn handler(
         requested_amount,
         bump: context.bumps.offer,
     });
-    context.accounts.counter.id += 1;
     Ok(())
 }
