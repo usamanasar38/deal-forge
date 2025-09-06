@@ -33,11 +33,11 @@ pub struct Offer {
     /// The token mint being offered
     pub offered_mint: Pubkey,
 
-    /// Amount of offered tokens
-    pub offered_amount: u64,
-
     /// The token mint that initializer is requesting
     pub requested_mint: Pubkey,
+
+    /// Amount of offered tokens
+    pub offered_amount: u64,
 
     /// Amount of requested tokens
     pub requested_amount: u64,

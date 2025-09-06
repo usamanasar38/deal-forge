@@ -5,7 +5,7 @@ pub mod state;
 use anchor_lang::prelude::*;
 use instructions::*;
 
-declare_id!("FVszYwFasoQN81yjF4LMCYSzKaGUWkf9KTb3wTrs7mBd");
+declare_id!("2KA5prsnpfHg38Gw5tz97NborpHKejFQgcu24GvmMzVd");
 
 #[program]
 pub mod dealforge {

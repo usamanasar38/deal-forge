@@ -63,10 +63,10 @@ export type Offer = {
   vault: Address;
   /** The token mint being offered */
   offeredMint: Address;
-  /** Amount of offered tokens */
-  offeredAmount: bigint;
   /** The token mint that initializer is requesting */
   requestedMint: Address;
+  /** Amount of offered tokens */
+  offeredAmount: bigint;
   /** Amount of requested tokens */
   requestedAmount: bigint;
   /**
@@ -87,10 +87,10 @@ export type OfferArgs = {
   vault: Address;
   /** The token mint being offered */
   offeredMint: Address;
-  /** Amount of offered tokens */
-  offeredAmount: number | bigint;
   /** The token mint that initializer is requesting */
   requestedMint: Address;
+  /** Amount of offered tokens */
+  offeredAmount: number | bigint;
   /** Amount of requested tokens */
   requestedAmount: number | bigint;
   /**
@@ -110,8 +110,8 @@ export function getOfferEncoder(): FixedSizeEncoder<OfferArgs> {
       ['maker', getAddressEncoder()],
       ['vault', getAddressEncoder()],
       ['offeredMint', getAddressEncoder()],
-      ['offeredAmount', getU64Encoder()],
       ['requestedMint', getAddressEncoder()],
+      ['offeredAmount', getU64Encoder()],
       ['requestedAmount', getU64Encoder()],
       ['status', getOfferStatusEncoder()],
       ['bump', getU8Encoder()],
@@ -127,8 +127,8 @@ export function getOfferDecoder(): FixedSizeDecoder<Offer> {
     ['maker', getAddressDecoder()],
     ['vault', getAddressDecoder()],
     ['offeredMint', getAddressDecoder()],
-    ['offeredAmount', getU64Decoder()],
     ['requestedMint', getAddressDecoder()],
+    ['offeredAmount', getU64Decoder()],
     ['requestedAmount', getU64Decoder()],
     ['status', getOfferStatusDecoder()],
     ['bump', getU8Decoder()],

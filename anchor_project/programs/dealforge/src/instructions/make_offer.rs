@@ -1,5 +1,5 @@
 use super::shared::transfer_tokens;
-use crate::state::*;
+use crate::state::{Offer, OfferStatus, OFFER_SEED};
 use anchor_lang::prelude::*;
 use anchor_lang::Discriminator;
 use anchor_spl::{
@@ -31,13 +31,14 @@ pub struct MakeOffer<'info> {
         init,
         payer = maker,
         space = Offer::DISCRIMINATOR.len() + Offer::INIT_SPACE,
-        seeds = [OFFER_SEED.as_bytes(), maker.key().as_ref(), id.to_le_bytes().as_ref()],
+        seeds = [b"OFFER_SEED", maker.key().as_ref(), id.to_le_bytes().as_ref()],
         bump
     )]
     pub offer: Account<'info, Offer>,
 
     #[account(
-        mut,
+        init_if_needed,
+        payer = maker,
         associated_token::mint = offered_mint,
         associated_token::authority = offer,
         associated_token::token_program = token_program,

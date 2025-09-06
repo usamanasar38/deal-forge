@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/dealforge.json`.
  */
 export type Dealforge = {
-  "address": "FVszYwFasoQN81yjF4LMCYSzKaGUWkf9KTb3wTrs7mBd",
+  "address": "2KA5prsnpfHg38Gw5tz97NborpHKejFQgcu24GvmMzVd",
   "metadata": {
     "name": "dealforge",
     "version": "0.1.0",
@@ -307,18 +307,18 @@ export type Dealforge = {
             "type": "pubkey"
           },
           {
-            "name": "offeredAmount",
-            "docs": [
-              "Amount of offered tokens"
-            ],
-            "type": "u64"
-          },
-          {
             "name": "requestedMint",
             "docs": [
               "The token mint that initializer is requesting"
             ],
             "type": "pubkey"
+          },
+          {
+            "name": "offeredAmount",
+            "docs": [
+              "Amount of offered tokens"
+            ],
+            "type": "u64"
           },
           {
             "name": "requestedAmount",

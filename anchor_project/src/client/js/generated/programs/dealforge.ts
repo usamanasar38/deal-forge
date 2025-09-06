@@ -16,7 +16,7 @@ import {
 import { type ParsedMakeOfferInstruction } from '../instructions';
 
 export const DEALFORGE_PROGRAM_ADDRESS =
-  'FVszYwFasoQN81yjF4LMCYSzKaGUWkf9KTb3wTrs7mBd' as Address<'FVszYwFasoQN81yjF4LMCYSzKaGUWkf9KTb3wTrs7mBd'>;
+  '2KA5prsnpfHg38Gw5tz97NborpHKejFQgcu24GvmMzVd' as Address<'2KA5prsnpfHg38Gw5tz97NborpHKejFQgcu24GvmMzVd'>;
 
 export enum DealforgeAccount {
   Offer,
@@ -67,7 +67,7 @@ export function identifyDealforgeInstruction(
 }
 
 export type ParsedDealforgeInstruction<
-  TProgram extends string = 'FVszYwFasoQN81yjF4LMCYSzKaGUWkf9KTb3wTrs7mBd',
+  TProgram extends string = '2KA5prsnpfHg38Gw5tz97NborpHKejFQgcu24GvmMzVd',
 > = {
   instructionType: DealforgeInstruction.MakeOffer;
 } & ParsedMakeOfferInstruction<TProgram>;

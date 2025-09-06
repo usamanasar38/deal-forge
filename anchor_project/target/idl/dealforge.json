@@ -1,5 +1,5 @@
 {
-  "address": "FVszYwFasoQN81yjF4LMCYSzKaGUWkf9KTb3wTrs7mBd",
+  "address": "2KA5prsnpfHg38Gw5tz97NborpHKejFQgcu24GvmMzVd",
   "metadata": {
     "name": "dealforge",
     "version": "0.1.0",
@@ -301,18 +301,18 @@
             "type": "pubkey"
           },
           {
-            "name": "offered_amount",
-            "docs": [
-              "Amount of offered tokens"
-            ],
-            "type": "u64"
-          },
-          {
             "name": "requested_mint",
             "docs": [
               "The token mint that initializer is requesting"
             ],
             "type": "pubkey"
+          },
+          {
+            "name": "offered_amount",
+            "docs": [
+              "Amount of offered tokens"
+            ],
+            "type": "u64"
           },
           {
             "name": "requested_amount",
