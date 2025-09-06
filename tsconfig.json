@@ -21,11 +21,11 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@project/anchor": ["anchor/src"],
+      "@project/anchor": ["anchor_project/src"],
       "@/*": ["./src/*"]
     },
     "strictNullChecks": true
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "anchor/target", "anchor/tests"]
+  "exclude": ["node_modules", "anchor_project/target", "anchor_project/tests"]
 }

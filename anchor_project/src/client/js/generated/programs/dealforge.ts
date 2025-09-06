@@ -19,7 +19,6 @@ export const DEALFORGE_PROGRAM_ADDRESS =
   'FVszYwFasoQN81yjF4LMCYSzKaGUWkf9KTb3wTrs7mBd' as Address<'FVszYwFasoQN81yjF4LMCYSzKaGUWkf9KTb3wTrs7mBd'>;
 
 export enum DealforgeAccount {
-  MakerCounter,
   Offer,
 }
 
@@ -27,17 +26,6 @@ export function identifyDealforgeAccount(
   account: { data: ReadonlyUint8Array } | ReadonlyUint8Array
 ): DealforgeAccount {
   const data = 'data' in account ? account.data : account;
-  if (
-    containsBytes(
-      data,
-      fixEncoderSize(getBytesEncoder(), 8).encode(
-        new Uint8Array([86, 129, 100, 95, 125, 24, 138, 26])
-      ),
-      0
-    )
-  ) {
-    return DealforgeAccount.MakerCounter;
-  }
   if (
     containsBytes(
       data,

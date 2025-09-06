@@ -4,7 +4,7 @@ import { getAssociatedTokenAccountAddress } from "gill/programs";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   createTestOffer,
-  createToekn,
+  createToken,
   createWalletWithSol,
   getTokenAccountBalance,
   mintTokens,
@@ -16,7 +16,7 @@ import {
 global.__GILL_DEBUG__ = true;
 
 /** Set the debug mode log level (default: `info`) */
-global.__GILL_DEBUG_LEVEL__ = "debug";
+// global.__GILL_DEBUG_LEVEL__ = "debug";
 
 const aliceInitialTokenAAmount = 100n;
 const bobInitialTokenAAmount = 10n;
@@ -40,8 +40,8 @@ describe("dealforge", () => {
     alice = await createWalletWithSol();
     bob = await createWalletWithSol();
     // Create Tokens
-    tokenMintA = await createToekn(signer);
-    tokenMintB = await createToekn(signer);
+    tokenMintA = await createToken(signer);
+    tokenMintB = await createToken(signer);
 
     // Mint tokens A and save their address
     aliceTokenAccountA = await mintTokens({

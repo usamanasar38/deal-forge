@@ -89,41 +89,6 @@
           }
         },
         {
-          "name": "counter",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  77,
-                  65,
-                  75,
-                  69,
-                  82,
-                  95,
-                  67,
-                  79,
-                  85,
-                  78,
-                  84,
-                  69,
-                  82,
-                  95,
-                  83,
-                  69,
-                  69,
-                  68
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "maker"
-              }
-            ]
-          }
-        },
-        {
           "name": "offer",
           "writable": true,
           "pda": {
@@ -148,9 +113,8 @@
                 "path": "maker"
               },
               {
-                "kind": "account",
-                "path": "counter.id",
-                "account": "MakerCounter"
+                "kind": "arg",
+                "path": "id"
               }
             ]
           }
@@ -226,6 +190,10 @@
       ],
       "args": [
         {
+          "name": "id",
+          "type": "u64"
+        },
+        {
           "name": "offered_amount",
           "type": "u64"
         },
@@ -237,19 +205,6 @@
     }
   ],
   "accounts": [
-    {
-      "name": "MakerCounter",
-      "discriminator": [
-        86,
-        129,
-        100,
-        95,
-        125,
-        24,
-        138,
-        26
-      ]
-    },
     {
       "name": "Offer",
       "discriminator": [
@@ -312,18 +267,6 @@
     }
   ],
   "types": [
-    {
-      "name": "MakerCounter",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "id",
-            "type": "u64"
-          }
-        ]
-      }
-    },
     {
       "name": "Offer",
       "type": {
@@ -425,11 +368,6 @@
     }
   ],
   "constants": [
-    {
-      "name": "MAKER_COUNTER_SEED",
-      "type": "string",
-      "value": "\"MAKER_COUNTER_SEED\""
-    },
     {
       "name": "OFFER_SEED",
       "type": "string",

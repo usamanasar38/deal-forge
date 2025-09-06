@@ -9,7 +9,6 @@ import { DEALFORGE_PROGRAM_ADDRESS } from "./client/js";
 export { DealforgeIDL };
 
 export const SEEDS = {
-  MAKER_COUNTER_SEED: "MAKER_COUNTER_SEED",
   OFFER_SEED: "OFFER_SEED",
 };
 

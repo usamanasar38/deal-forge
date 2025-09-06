@@ -37,6 +37,7 @@ import {
 import { DEALFORGE_PROGRAM_ADDRESS } from '../programs';
 import {
   expectAddress,
+  expectSome,
   getAccountMetaFactory,
   type ResolvedAccount,
 } from '../shared';
@@ -55,7 +56,6 @@ export type MakeOfferInstruction<
   TAccountOfferedMint extends string | AccountMeta<string> = string,
   TAccountRequestedMint extends string | AccountMeta<string> = string,
   TAccountMakerOfferedAta extends string | AccountMeta<string> = string,
-  TAccountCounter extends string | AccountMeta<string> = string,
   TAccountOffer extends string | AccountMeta<string> = string,
   TAccountVault extends string | AccountMeta<string> = string,
   TAccountAssociatedTokenProgram extends
@@ -85,9 +85,6 @@ export type MakeOfferInstruction<
       TAccountMakerOfferedAta extends string
         ? WritableAccount<TAccountMakerOfferedAta>
         : TAccountMakerOfferedAta,
-      TAccountCounter extends string
-        ? WritableAccount<TAccountCounter>
-        : TAccountCounter,
       TAccountOffer extends string
         ? WritableAccount<TAccountOffer>
         : TAccountOffer,
@@ -109,11 +106,13 @@ export type MakeOfferInstruction<
 
 export type MakeOfferInstructionData = {
   discriminator: ReadonlyUint8Array;
+  id: bigint;
   offeredAmount: bigint;
   requestedAmount: bigint;
 };
 
 export type MakeOfferInstructionDataArgs = {
+  id: number | bigint;
   offeredAmount: number | bigint;
   requestedAmount: number | bigint;
 };
@@ -122,6 +121,7 @@ export function getMakeOfferInstructionDataEncoder(): FixedSizeEncoder<MakeOffer
   return transformEncoder(
     getStructEncoder([
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
+      ['id', getU64Encoder()],
       ['offeredAmount', getU64Encoder()],
       ['requestedAmount', getU64Encoder()],
     ]),
@@ -132,6 +132,7 @@ export function getMakeOfferInstructionDataEncoder(): FixedSizeEncoder<MakeOffer
 export function getMakeOfferInstructionDataDecoder(): FixedSizeDecoder<MakeOfferInstructionData> {
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
+    ['id', getU64Decoder()],
     ['offeredAmount', getU64Decoder()],
     ['requestedAmount', getU64Decoder()],
   ]);
@@ -152,7 +153,6 @@ export type MakeOfferAsyncInput<
   TAccountOfferedMint extends string = string,
   TAccountRequestedMint extends string = string,
   TAccountMakerOfferedAta extends string = string,
-  TAccountCounter extends string = string,
   TAccountOffer extends string = string,
   TAccountVault extends string = string,
   TAccountAssociatedTokenProgram extends string = string,
@@ -163,12 +163,12 @@ export type MakeOfferAsyncInput<
   offeredMint: Address<TAccountOfferedMint>;
   requestedMint: Address<TAccountRequestedMint>;
   makerOfferedAta?: Address<TAccountMakerOfferedAta>;
-  counter?: Address<TAccountCounter>;
-  offer: Address<TAccountOffer>;
+  offer?: Address<TAccountOffer>;
   vault?: Address<TAccountVault>;
   associatedTokenProgram?: Address<TAccountAssociatedTokenProgram>;
   tokenProgram?: Address<TAccountTokenProgram>;
   systemProgram?: Address<TAccountSystemProgram>;
+  id: MakeOfferInstructionDataArgs['id'];
   offeredAmount: MakeOfferInstructionDataArgs['offeredAmount'];
   requestedAmount: MakeOfferInstructionDataArgs['requestedAmount'];
 };
@@ -178,7 +178,6 @@ export async function getMakeOfferInstructionAsync<
   TAccountOfferedMint extends string,
   TAccountRequestedMint extends string,
   TAccountMakerOfferedAta extends string,
-  TAccountCounter extends string,
   TAccountOffer extends string,
   TAccountVault extends string,
   TAccountAssociatedTokenProgram extends string,
@@ -191,7 +190,6 @@ export async function getMakeOfferInstructionAsync<
     TAccountOfferedMint,
     TAccountRequestedMint,
     TAccountMakerOfferedAta,
-    TAccountCounter,
     TAccountOffer,
     TAccountVault,
     TAccountAssociatedTokenProgram,
@@ -206,7 +204,6 @@ export async function getMakeOfferInstructionAsync<
     TAccountOfferedMint,
     TAccountRequestedMint,
     TAccountMakerOfferedAta,
-    TAccountCounter,
     TAccountOffer,
     TAccountVault,
     TAccountAssociatedTokenProgram,
@@ -223,7 +220,6 @@ export async function getMakeOfferInstructionAsync<
     offeredMint: { value: input.offeredMint ?? null, isWritable: false },
     requestedMint: { value: input.requestedMint ?? null, isWritable: false },
     makerOfferedAta: { value: input.makerOfferedAta ?? null, isWritable: true },
-    counter: { value: input.counter ?? null, isWritable: true },
     offer: { value: input.offer ?? null, isWritable: true },
     vault: { value: input.vault ?? null, isWritable: true },
     associatedTokenProgram: {
@@ -257,17 +253,15 @@ export async function getMakeOfferInstructionAsync<
       ],
     });
   }
-  if (!accounts.counter.value) {
-    accounts.counter.value = await getProgramDerivedAddress({
+  if (!accounts.offer.value) {
+    accounts.offer.value = await getProgramDerivedAddress({
       programAddress,
       seeds: [
         getBytesEncoder().encode(
-          new Uint8Array([
-            77, 65, 75, 69, 82, 95, 67, 79, 85, 78, 84, 69, 82, 95, 83, 69, 69,
-            68,
-          ])
+          new Uint8Array([79, 70, 70, 69, 82, 95, 83, 69, 69, 68])
         ),
         getAddressEncoder().encode(expectAddress(accounts.maker.value)),
+        getU64Encoder().encode(expectSome(args.id)),
       ],
     });
   }
@@ -298,7 +292,6 @@ export async function getMakeOfferInstructionAsync<
       getAccountMeta(accounts.offeredMint),
       getAccountMeta(accounts.requestedMint),
       getAccountMeta(accounts.makerOfferedAta),
-      getAccountMeta(accounts.counter),
       getAccountMeta(accounts.offer),
       getAccountMeta(accounts.vault),
       getAccountMeta(accounts.associatedTokenProgram),
@@ -315,7 +308,6 @@ export async function getMakeOfferInstructionAsync<
     TAccountOfferedMint,
     TAccountRequestedMint,
     TAccountMakerOfferedAta,
-    TAccountCounter,
     TAccountOffer,
     TAccountVault,
     TAccountAssociatedTokenProgram,
@@ -329,7 +321,6 @@ export type MakeOfferInput<
   TAccountOfferedMint extends string = string,
   TAccountRequestedMint extends string = string,
   TAccountMakerOfferedAta extends string = string,
-  TAccountCounter extends string = string,
   TAccountOffer extends string = string,
   TAccountVault extends string = string,
   TAccountAssociatedTokenProgram extends string = string,
@@ -340,12 +331,12 @@ export type MakeOfferInput<
   offeredMint: Address<TAccountOfferedMint>;
   requestedMint: Address<TAccountRequestedMint>;
   makerOfferedAta: Address<TAccountMakerOfferedAta>;
-  counter: Address<TAccountCounter>;
   offer: Address<TAccountOffer>;
   vault: Address<TAccountVault>;
   associatedTokenProgram?: Address<TAccountAssociatedTokenProgram>;
   tokenProgram?: Address<TAccountTokenProgram>;
   systemProgram?: Address<TAccountSystemProgram>;
+  id: MakeOfferInstructionDataArgs['id'];
   offeredAmount: MakeOfferInstructionDataArgs['offeredAmount'];
   requestedAmount: MakeOfferInstructionDataArgs['requestedAmount'];
 };
@@ -355,7 +346,6 @@ export function getMakeOfferInstruction<
   TAccountOfferedMint extends string,
   TAccountRequestedMint extends string,
   TAccountMakerOfferedAta extends string,
-  TAccountCounter extends string,
   TAccountOffer extends string,
   TAccountVault extends string,
   TAccountAssociatedTokenProgram extends string,
@@ -368,7 +358,6 @@ export function getMakeOfferInstruction<
     TAccountOfferedMint,
     TAccountRequestedMint,
     TAccountMakerOfferedAta,
-    TAccountCounter,
     TAccountOffer,
     TAccountVault,
     TAccountAssociatedTokenProgram,
@@ -382,7 +371,6 @@ export function getMakeOfferInstruction<
   TAccountOfferedMint,
   TAccountRequestedMint,
   TAccountMakerOfferedAta,
-  TAccountCounter,
   TAccountOffer,
   TAccountVault,
   TAccountAssociatedTokenProgram,
@@ -398,7 +386,6 @@ export function getMakeOfferInstruction<
     offeredMint: { value: input.offeredMint ?? null, isWritable: false },
     requestedMint: { value: input.requestedMint ?? null, isWritable: false },
     makerOfferedAta: { value: input.makerOfferedAta ?? null, isWritable: true },
-    counter: { value: input.counter ?? null, isWritable: true },
     offer: { value: input.offer ?? null, isWritable: true },
     vault: { value: input.vault ?? null, isWritable: true },
     associatedTokenProgram: {
@@ -437,7 +424,6 @@ export function getMakeOfferInstruction<
       getAccountMeta(accounts.offeredMint),
       getAccountMeta(accounts.requestedMint),
       getAccountMeta(accounts.makerOfferedAta),
-      getAccountMeta(accounts.counter),
       getAccountMeta(accounts.offer),
       getAccountMeta(accounts.vault),
       getAccountMeta(accounts.associatedTokenProgram),
@@ -454,7 +440,6 @@ export function getMakeOfferInstruction<
     TAccountOfferedMint,
     TAccountRequestedMint,
     TAccountMakerOfferedAta,
-    TAccountCounter,
     TAccountOffer,
     TAccountVault,
     TAccountAssociatedTokenProgram,
@@ -473,12 +458,11 @@ export type ParsedMakeOfferInstruction<
     offeredMint: TAccountMetas[1];
     requestedMint: TAccountMetas[2];
     makerOfferedAta: TAccountMetas[3];
-    counter: TAccountMetas[4];
-    offer: TAccountMetas[5];
-    vault: TAccountMetas[6];
-    associatedTokenProgram: TAccountMetas[7];
-    tokenProgram: TAccountMetas[8];
-    systemProgram: TAccountMetas[9];
+    offer: TAccountMetas[4];
+    vault: TAccountMetas[5];
+    associatedTokenProgram: TAccountMetas[6];
+    tokenProgram: TAccountMetas[7];
+    systemProgram: TAccountMetas[8];
   };
   data: MakeOfferInstructionData;
 };
@@ -491,7 +475,7 @@ export function parseMakeOfferInstruction<
     InstructionWithAccounts<TAccountMetas> &
     InstructionWithData<ReadonlyUint8Array>
 ): ParsedMakeOfferInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 10) {
+  if (instruction.accounts.length < 9) {
     // TODO: Coded error.
     throw new Error('Not enough accounts');
   }
@@ -508,7 +492,6 @@ export function parseMakeOfferInstruction<
       offeredMint: getNextAccount(),
       requestedMint: getNextAccount(),
       makerOfferedAta: getNextAccount(),
-      counter: getNextAccount(),
       offer: getNextAccount(),
       vault: getNextAccount(),
       associatedTokenProgram: getNextAccount(),

@@ -95,41 +95,6 @@ export type Dealforge = {
           }
         },
         {
-          "name": "counter",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  77,
-                  65,
-                  75,
-                  69,
-                  82,
-                  95,
-                  67,
-                  79,
-                  85,
-                  78,
-                  84,
-                  69,
-                  82,
-                  95,
-                  83,
-                  69,
-                  69,
-                  68
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "maker"
-              }
-            ]
-          }
-        },
-        {
           "name": "offer",
           "writable": true,
           "pda": {
@@ -154,9 +119,8 @@ export type Dealforge = {
                 "path": "maker"
               },
               {
-                "kind": "account",
-                "path": "counter.id",
-                "account": "makerCounter"
+                "kind": "arg",
+                "path": "id"
               }
             ]
           }
@@ -232,6 +196,10 @@ export type Dealforge = {
       ],
       "args": [
         {
+          "name": "id",
+          "type": "u64"
+        },
+        {
           "name": "offeredAmount",
           "type": "u64"
         },
@@ -243,19 +211,6 @@ export type Dealforge = {
     }
   ],
   "accounts": [
-    {
-      "name": "makerCounter",
-      "discriminator": [
-        86,
-        129,
-        100,
-        95,
-        125,
-        24,
-        138,
-        26
-      ]
-    },
     {
       "name": "offer",
       "discriminator": [
@@ -318,18 +273,6 @@ export type Dealforge = {
     }
   ],
   "types": [
-    {
-      "name": "makerCounter",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "id",
-            "type": "u64"
-          }
-        ]
-      }
-    },
     {
       "name": "offer",
       "type": {
@@ -431,11 +374,6 @@ export type Dealforge = {
     }
   ],
   "constants": [
-    {
-      "name": "makerCounterSeed",
-      "type": "string",
-      "value": "\"MAKER_COUNTER_SEED\""
-    },
     {
       "name": "offerSeed",
       "type": "string",

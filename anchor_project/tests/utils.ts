@@ -5,9 +5,6 @@ import {
   createSolanaClient,
   createTransaction,
   generateKeyPairSigner,
-  getAddressEncoder,
-  getProgramDerivedAddress,
-  getU64Encoder,
   type Instruction,
   type KeyPairSigner,
   LAMPORTS_PER_SOL,
@@ -20,18 +17,11 @@ import {
   buildMintTokensTransaction,
   getAssociatedTokenAccountAddress,
 } from "gill/programs/token";
-import {
-  DEALFORGE_PROGRAM_ADDRESS,
-  fetchMakerCounter,
-  getMakeOfferInstructionAsync,
-} from "../src";
-import { getCounterPDA } from "./pda";
+import { getMakeOfferInstructionAsync } from "../src";
+import { getOfferPDA } from "./pda";
 
 /** Turn on debug mode */
 global.__GILL_DEBUG__ = true;
-
-/** Set the debug mode log level (default: `info`) */
-global.__GILL_DEBUG_LEVEL__ = "debug";
 
 const tokenDecimals = 9;
 export const tokenProgram = TOKEN_2022_PROGRAM_ADDRESS;
@@ -98,7 +88,7 @@ export async function createWalletWithSol(amount = 5) {
   return wallet;
 }
 
-export async function createToekn(payer: KeyPairSigner) {
+export async function createToken(payer: KeyPairSigner) {
   const mint = await generateKeyPairSigner();
   const latestBlockhash = await getLatestBlockhash();
   const createTokenTx = await buildCreateTokenTransaction({
@@ -150,6 +140,10 @@ export async function mintTokens({
   return tokenAccount;
 }
 
+export const getRandomBigInt = () => {
+  return BigInt(Math.floor(Math.random() * 1_000_000_000_000_000_000));
+};
+
 // Helper function to create a test offer
 export async function createTestOffer({
   maker,
@@ -166,15 +160,10 @@ export async function createTestOffer({
   tokenOfferedAmount: bigint;
   tokenRequestedAmount: bigint;
 }) {
-  const [counter, _counterBump] = await getCounterPDA({ maker });
-  const offerCounter = await fetchMakerCounter(rpc, counter);
-  const [offer, _offerBump] = await getProgramDerivedAddress({
-    programAddress: DEALFORGE_PROGRAM_ADDRESS,
-    seeds: [
-      "offer", // "offer"
-      getAddressEncoder().encode(maker.address),
-      getU64Encoder().encode(offerCounter.data.id),
-    ],
+  const offerId = getRandomBigInt();
+  const [offer, _offerBump] = await getOfferPDA({
+    maker,
+    offerId,
   });
 
   const vault = await getAssociatedTokenAccountAddress(
@@ -184,6 +173,7 @@ export async function createTestOffer({
   );
 
   const makeOfferInstruction = await getMakeOfferInstructionAsync({
+    id: offerId,
     maker,
     offeredMint: offeredMint.address,
     requestedMint: requestedMint.address,
@@ -199,5 +189,5 @@ export async function createTestOffer({
     payer: maker,
   });
 
-  return { offer, vault, signature, counter };
+  return { offer, vault, signature, offerId };
 }
