@@ -71,8 +71,6 @@ pub fn handler(
         maker: context.accounts.maker.key(),
         offered_mint: context.accounts.offered_mint.key(),
         requested_mint: context.accounts.requested_mint.key(),
-        vault: context.accounts.vault.key(),
-        status: OfferStatus::Active,
         offered_amount,
         requested_amount,
         bump: context.bumps.offer,

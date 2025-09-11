@@ -59,7 +59,6 @@ pub struct TakeOffer<'info> {
         has_one = offered_mint,
         seeds = [OFFER_SEED.as_bytes(), maker.key().as_ref(), offer.id.to_le_bytes().as_ref()],
         bump = offer.bump,
-        constraint = offer.status == OfferStatus::Active @ SaleForgeError::OfferNotActive
     )]
     offer: Account<'info, Offer>,
 

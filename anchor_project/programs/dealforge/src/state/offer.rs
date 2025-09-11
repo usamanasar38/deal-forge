@@ -3,21 +3,6 @@ use anchor_lang::prelude::*;
 #[constant]
 pub const OFFER_SEED: &str = "OFFER_SEED";
 
-/// Possible states of an deal-forge
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug, PartialEq, Eq, InitSpace)]
-pub enum OfferStatus {
-    Active,
-    Fulfilled,
-    Canceled,
-    Expired,
-}
-
-impl Default for OfferStatus {
-    fn default() -> Self {
-        OfferStatus::Active
-    }
-}
-
 #[account]
 #[derive(InitSpace)]
 pub struct Offer {
@@ -26,9 +11,6 @@ pub struct Offer {
 
     /// The maker (offer creator)
     pub maker: Pubkey,
-
-    /// The token account that will hold maker’s offered tokens (PDA vault)
-    pub vault: Pubkey,
 
     /// The token mint being offered
     pub offered_mint: Pubkey,
@@ -44,9 +26,6 @@ pub struct Offer {
 
     /// Expiry timestamp (unix time), after which initializer can cancel
     // pub expiry: i64,
-
-    /// Status of the deal-forge (e.g., Active, Completed, Canceled)
-    pub status: OfferStatus,
 
     /// PDA bump seed (to derive vault PDA)
     pub bump: u8,
