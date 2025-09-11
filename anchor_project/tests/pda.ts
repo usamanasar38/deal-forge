@@ -1,8 +1,10 @@
 import {
   type Address,
   getAddressEncoder,
+  getBytesEncoder,
   getProgramDerivedAddress,
   getU64Encoder,
+  getUtf8Encoder,
   type KeyPairSigner,
   type ProgramDerivedAddress,
 } from "gill";
@@ -19,7 +21,7 @@ export function getOfferPDA({
   return getProgramDerivedAddress({
     programAddress: DEALFORGE_PROGRAM_ADDRESS,
     seeds: [
-      SEEDS.OFFER_SEED, // "offer"
+      getBytesEncoder().encode(getUtf8Encoder().encode(SEEDS.OFFER_SEED)),
       getAddressEncoder().encode(maker.address),
       getU64Encoder().encode(offerId),
     ],

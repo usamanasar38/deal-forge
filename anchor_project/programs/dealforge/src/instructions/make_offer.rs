@@ -31,13 +31,13 @@ pub struct MakeOffer<'info> {
         init,
         payer = maker,
         space = Offer::DISCRIMINATOR.len() + Offer::INIT_SPACE,
-        seeds = [b"OFFER_SEED", maker.key().as_ref(), id.to_le_bytes().as_ref()],
+        seeds = [OFFER_SEED.as_bytes(), maker.key().as_ref(), id.to_le_bytes().as_ref()],
         bump
     )]
     pub offer: Account<'info, Offer>,
 
     #[account(
-        init_if_needed,
+        init,
         payer = maker,
         associated_token::mint = offered_mint,
         associated_token::authority = offer,
