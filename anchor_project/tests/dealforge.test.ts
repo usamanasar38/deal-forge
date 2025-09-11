@@ -21,6 +21,8 @@ global.__GILL_DEBUG__ = true;
 /** Set the debug mode log level (default: `info`) */
 // global.__GILL_DEBUG_LEVEL__ = "debug";
 
+const INSUFFICIENT_FUNDS_ERROR_MESSAGE = "custom program error: #1";
+
 const aliceInitialTokenAAmount = 100n;
 const bobInitialTokenAAmount = 10n;
 const bobInitialTokenBAmount = 10n;
@@ -132,7 +134,102 @@ describe("dealforge", () => {
           skipPreflight: true,
         })
         // insufficient funds error
-      ).rejects.toThrow("custom program error: #1");
+      ).rejects.toThrow(INSUFFICIENT_FUNDS_ERROR_MESSAGE);
+    });
+  });
+
+  describe("takeOffer", () => {
+    it("should successfully take offer and close offer account", async () => {
+      const { vault, offer } = await createTestOffer({
+        maker: data.maker,
+        offeredMint: data.offeredMint,
+        requestedMint: data.requestedMint,
+        makerTokenAccount: data.makerOfferedTokenAccount,
+        tokenOfferedAmount: tokenAOfferedAmount,
+        tokenRequestedAmount: tokenBWantedAmount,
+      });
+
+      const takeOfferInstruction = await getTakeOfferInstructionAsync({
+        maker: data.maker.address,
+        taker: data.taker,
+        offeredMint: data.offeredMint.address,
+        requestedMint: data.requestedMint.address,
+        makerRequestedAta: data.makerRequestedTokenAccount,
+        takerOfferedAta: data.takerOfferedTokenAccount,
+        takerRequestedAta: data.takerRequestedTokenAccount,
+        offer,
+        vault,
+        tokenProgram,
+      });
+
+      await createAndConfirmTransaction({
+        ix: [takeOfferInstruction],
+        payer: data.taker,
+      });
+      const [
+        aliceTokenABalanceAfter,
+        aliceTokenBBalance,
+        bobTokenABalanceAfter,
+        bobTokenBBalance,
+      ] = await Promise.all([
+        getTokenAccountBalance(aliceTokenAccountA),
+        getTokenAccountBalance(aliceTokenAccountB),
+        getTokenAccountBalance(bobTokenAccountA),
+        getTokenAccountBalance(bobTokenAccountB),
+      ]);
+
+      // verify each account balance
+      // in previous test, we created one offer and this is second offer.
+      expect(BigInt(aliceTokenABalanceAfter.amount)).toEqual(
+        aliceInitialTokenAAmount * ONE_MINT_TOKEN - 2n * tokenAOfferedAmount
+      );
+
+      expect(BigInt(aliceTokenBBalance.amount)).toEqual(tokenBWantedAmount);
+
+      expect(BigInt(bobTokenABalanceAfter.amount)).toEqual(
+        bobInitialTokenAAmount * ONE_MINT_TOKEN + tokenAOfferedAmount
+      );
+
+      expect(BigInt(bobTokenBBalance.amount)).toEqual(
+        bobInitialTokenAAmount * ONE_MINT_TOKEN - tokenBWantedAmount
+      );
+
+      // Account is not found as it is closed.
+      await expect(fetchOffer(rpc, offer)).rejects.toThrow(
+        `Account not found at address: ${offer}`
+      );
+    });
+
+    it("should fails when taker has insufficient requested token balance", async () => {
+      const { offer, vault } = await createTestOffer({
+        maker: data.maker,
+        offeredMint: data.offeredMint,
+        requestedMint: data.requestedMint,
+        makerTokenAccount: data.makerOfferedTokenAccount,
+        tokenOfferedAmount: tokenAOfferedAmount,
+        tokenRequestedAmount: 10_000_000_000n,
+      });
+
+      const takeOfferInstruction = await getTakeOfferInstructionAsync({
+        maker: data.maker.address,
+        taker: data.taker,
+        offeredMint: data.offeredMint.address,
+        requestedMint: data.requestedMint.address,
+        makerRequestedAta: data.makerRequestedTokenAccount,
+        takerOfferedAta: data.takerOfferedTokenAccount,
+        takerRequestedAta: data.takerRequestedTokenAccount,
+        offer,
+        vault,
+        tokenProgram,
+      });
+
+      await expect(
+        createAndConfirmTransaction({
+          ix: [takeOfferInstruction],
+          payer: data.taker,
+          skipPreflight: true,
+        })
+      ).rejects.toThrow(INSUFFICIENT_FUNDS_ERROR_MESSAGE);
     });
   });
 });
