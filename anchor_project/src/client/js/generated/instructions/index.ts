@@ -7,3 +7,4 @@
  */
 
 export * from './makeOffer';
+export * from './takeOffer';

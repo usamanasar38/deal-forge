@@ -19,6 +19,10 @@ pub mod dealforge {
     ) -> Result<()> {
         make_offer::handler(context, id, offered_amount, requested_amount)
     }
+
+    pub fn take_offer(context: Context<TakeOffer>) -> Result<()> {
+        take_offer::handler(context)
+    }
 }
 
 #[derive(Accounts)]

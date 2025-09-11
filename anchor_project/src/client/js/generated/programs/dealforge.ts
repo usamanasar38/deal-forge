@@ -13,7 +13,10 @@ import {
   type Address,
   type ReadonlyUint8Array,
 } from 'gill';
-import { type ParsedMakeOfferInstruction } from '../instructions';
+import {
+  type ParsedMakeOfferInstruction,
+  type ParsedTakeOfferInstruction,
+} from '../instructions';
 
 export const DEALFORGE_PROGRAM_ADDRESS =
   '2KA5prsnpfHg38Gw5tz97NborpHKejFQgcu24GvmMzVd' as Address<'2KA5prsnpfHg38Gw5tz97NborpHKejFQgcu24GvmMzVd'>;
@@ -44,6 +47,7 @@ export function identifyDealforgeAccount(
 
 export enum DealforgeInstruction {
   MakeOffer,
+  TakeOffer,
 }
 
 export function identifyDealforgeInstruction(
@@ -61,6 +65,17 @@ export function identifyDealforgeInstruction(
   ) {
     return DealforgeInstruction.MakeOffer;
   }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([128, 156, 242, 207, 237, 192, 103, 240])
+      ),
+      0
+    )
+  ) {
+    return DealforgeInstruction.TakeOffer;
+  }
   throw new Error(
     'The provided instruction could not be identified as a dealforge instruction.'
   );
@@ -68,6 +83,10 @@ export function identifyDealforgeInstruction(
 
 export type ParsedDealforgeInstruction<
   TProgram extends string = '2KA5prsnpfHg38Gw5tz97NborpHKejFQgcu24GvmMzVd',
-> = {
-  instructionType: DealforgeInstruction.MakeOffer;
-} & ParsedMakeOfferInstruction<TProgram>;
+> =
+  | ({
+      instructionType: DealforgeInstruction.MakeOffer;
+    } & ParsedMakeOfferInstruction<TProgram>)
+  | ({
+      instructionType: DealforgeInstruction.TakeOffer;
+    } & ParsedTakeOfferInstruction<TProgram>);

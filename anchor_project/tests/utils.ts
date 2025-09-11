@@ -66,11 +66,11 @@ async function sendAndConfirm(
 export async function createAndConfirmTransaction({
   ix,
   payer,
-  skipPreflight,
+  skipPreflight = false,
 }: {
   ix: Instruction[];
   payer: KeyPairSigner;
-  skipPreflight: boolean;
+  skipPreflight?: boolean;
 }) {
   const tx = createTransaction({
     feePayer: payer,
