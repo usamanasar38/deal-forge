@@ -2,7 +2,7 @@ import type { Address, KeyPairSigner } from "gill";
 import { loadKeypairSignerFromFile } from "gill/node";
 import { getAssociatedTokenAccountAddress } from "gill/programs";
 import { beforeAll, describe, expect, it } from "vitest";
-import { getTakeOfferInstructionAsync } from "../src";
+import { fetchOffer, getTakeOfferInstructionAsync } from "../src";
 import {
   createAndConfirmTransaction,
   createTestOffer,
@@ -11,6 +11,7 @@ import {
   getTokenAccountBalance,
   mintTokens,
   ONE_MINT_TOKEN,
+  rpc,
   tokenProgram,
 } from "./utils";
 
@@ -146,6 +147,10 @@ describe("dealforge", () => {
 
       expect(BigInt(bobTokenBBalance.amount)).toEqual(
         bobInitialTokenAAmount * ONE_MINT_TOKEN - tokenBWantedAmount
+      );
+
+      await expect(fetchOffer(rpc, offer)).rejects.toThrow(
+        `Account not found at address: ${offer}`
       );
     });
   });
