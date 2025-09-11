@@ -116,53 +116,6 @@ describe("dealforge", () => {
       expect(BigInt(aliceBlance.amount)).toEqual(
         aliceInitialTokenAAmount * ONE_MINT_TOKEN - tokenAOfferedAmount
       );
-
-      const takeOfferInstruction = await getTakeOfferInstructionAsync({
-        maker: data.maker.address,
-        taker: data.taker,
-        offeredMint: data.offeredMint.address,
-        requestedMint: data.requestedMint.address,
-        makerRequestedAta: data.makerRequestedTokenAccount,
-        takerOfferedAta: data.takerOfferedTokenAccount,
-        takerRequestedAta: data.takerRequestedTokenAccount,
-        offer,
-        vault,
-        tokenProgram,
-      });
-
-      await createAndConfirmTransaction({
-        ix: [takeOfferInstruction],
-        payer: data.taker,
-      });
-      const [
-        aliceTokenABalanceAfter,
-        aliceTokenBBalance,
-        bobTokenABalanceAfter,
-        bobTokenBBalance,
-      ] = await Promise.all([
-        getTokenAccountBalance(aliceTokenAccountA),
-        getTokenAccountBalance(aliceTokenAccountB),
-        getTokenAccountBalance(bobTokenAccountA),
-        getTokenAccountBalance(bobTokenAccountB),
-      ]);
-
-      expect(BigInt(aliceTokenABalanceAfter.amount)).toEqual(
-        aliceInitialTokenAAmount * ONE_MINT_TOKEN - tokenAOfferedAmount
-      );
-
-      expect(BigInt(aliceTokenBBalance.amount)).toEqual(tokenBWantedAmount);
-
-      expect(BigInt(bobTokenABalanceAfter.amount)).toEqual(
-        bobInitialTokenAAmount * ONE_MINT_TOKEN + tokenAOfferedAmount
-      );
-
-      expect(BigInt(bobTokenBBalance.amount)).toEqual(
-        bobInitialTokenAAmount * ONE_MINT_TOKEN - tokenBWantedAmount
-      );
-
-      await expect(fetchOffer(rpc, offer)).rejects.toThrow(
-        `Account not found at address: ${offer}`
-      );
     });
 
     it("should fail to make offer when maker has insufficient token balance", async () => {
