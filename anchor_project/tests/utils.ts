@@ -52,17 +52,25 @@ export async function getLatestBlockhash(): Promise<
     .then(({ value }) => value);
 }
 
-async function sendAndConfirm(tx: ReturnType<typeof createTransaction>) {
+async function sendAndConfirm(
+  tx: ReturnType<typeof createTransaction>,
+  skipPreflight = false
+) {
   const signedTransaction = await signTransactionMessageWithSigners(tx);
-  return await sendAndConfirmTransaction(signedTransaction);
+  return await sendAndConfirmTransaction(signedTransaction, {
+    commitment: "confirmed",
+    skipPreflight,
+  });
 }
 
 export async function createAndConfirmTransaction({
   ix,
   payer,
+  skipPreflight,
 }: {
   ix: Instruction[];
   payer: KeyPairSigner;
+  skipPreflight: boolean;
 }) {
   const tx = createTransaction({
     feePayer: payer,
@@ -71,7 +79,7 @@ export async function createAndConfirmTransaction({
     latestBlockhash: await getLatestBlockhash(),
   });
 
-  return sendAndConfirm(tx);
+  return sendAndConfirm(tx, skipPreflight);
 }
 
 export async function createWalletWithSol(amount = 5) {
@@ -136,7 +144,7 @@ export async function mintTokens({
     destinationWallet,
     tokenProgram
   );
-  await getTokenAccountBalance(tokenAccount);
+  // await getTokenAccountBalance(tokenAccount);
   return tokenAccount;
 }
 
@@ -187,6 +195,7 @@ export async function createTestOffer({
   const signature = await createAndConfirmTransaction({
     ix: [makeOfferInstruction],
     payer: maker,
+    skipPreflight: false,
   });
 
   return { offer, vault, signature, offerId };

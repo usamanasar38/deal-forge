@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 
 #[error_code]
-pub enum ErrorCode {
+pub enum SaleForgeError {
     #[msg("Insufficient token balance")]
     InsufficientBalance,
     #[msg("Token transfer failed")]

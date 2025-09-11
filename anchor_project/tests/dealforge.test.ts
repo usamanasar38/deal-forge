@@ -2,7 +2,9 @@ import type { Address, KeyPairSigner } from "gill";
 import { loadKeypairSignerFromFile } from "gill/node";
 import { getAssociatedTokenAccountAddress } from "gill/programs";
 import { beforeAll, describe, expect, it } from "vitest";
+import { getTakeOfferInstructionAsync } from "../src";
 import {
+  createAndConfirmTransaction,
   createTestOffer,
   createToken,
   createWalletWithSol,
@@ -76,18 +78,32 @@ describe("dealforge", () => {
 
   describe("makeOffer", () => {
     it("successfully creates an offer with valid inputs", async () => {
-      const { vault } = await createTestOffer({
+      const data = {
         maker: alice,
+        makerOfferedTokenAccount: aliceTokenAccountA,
+        makerRequestedTokenAccount: aliceTokenAccountB,
         offeredMint: tokenMintA,
         requestedMint: tokenMintB,
-        makerTokenAccount: aliceTokenAccountA,
+        taker: bob,
+        takerOfferedTokenAccount: bobTokenAccountA,
+        takerRequestedTokenAccount: bobTokenAccountB,
+      };
+      const { vault, offer } = await createTestOffer({
+        maker: data.maker,
+        offeredMint: data.offeredMint,
+        requestedMint: data.requestedMint,
+        makerTokenAccount: data.makerOfferedTokenAccount,
         tokenOfferedAmount: tokenAOfferedAmount,
         tokenRequestedAmount: tokenBWantedAmount,
       });
 
       // Verify the offer was created successfully by checking the vault balance
       const vaultBalanceResponse = await getTokenAccountBalance(vault);
+      const aliceBlance = await getTokenAccountBalance(aliceTokenAccountA);
       expect(BigInt(vaultBalanceResponse.amount)).toEqual(tokenAOfferedAmount);
+      expect(BigInt(aliceBlance.amount)).toEqual(
+        aliceInitialTokenAAmount * ONE_MINT_TOKEN - tokenAOfferedAmount
+      );
     });
   });
 });
