@@ -160,6 +160,7 @@ export async function createTestOffer({
   makerTokenAccount,
   tokenOfferedAmount,
   tokenRequestedAmount,
+  skipPreflight = false,
 }: {
   maker: KeyPairSigner;
   offeredMint: KeyPairSigner;
@@ -167,6 +168,7 @@ export async function createTestOffer({
   makerTokenAccount: Address;
   tokenOfferedAmount: bigint;
   tokenRequestedAmount: bigint;
+  skipPreflight?: boolean;
 }) {
   const offerId = getRandomBigInt();
   const [offer, _offerBump] = await getOfferPDA({
@@ -195,7 +197,7 @@ export async function createTestOffer({
   const signature = await createAndConfirmTransaction({
     ix: [makeOfferInstruction],
     payer: maker,
-    skipPreflight: false,
+    skipPreflight,
   });
 
   return { offer, vault, signature, offerId };

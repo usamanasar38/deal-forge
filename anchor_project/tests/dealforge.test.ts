@@ -38,6 +38,17 @@ describe("dealforge", () => {
   let bobTokenAccountA: Address;
   let bobTokenAccountB: Address;
 
+  let data: {
+    maker: typeof alice;
+    makerOfferedTokenAccount: typeof aliceTokenAccountA;
+    makerRequestedTokenAccount: typeof aliceTokenAccountB;
+    offeredMint: typeof tokenMintA;
+    requestedMint: typeof tokenMintB;
+    taker: typeof bob;
+    takerOfferedTokenAccount: typeof bobTokenAccountA;
+    takerRequestedTokenAccount: typeof bobTokenAccountB;
+  };
+
   beforeAll(async () => {
     signer = await loadKeypairSignerFromFile(process.env.ANCHOR_WALLET);
     alice = await createWalletWithSol();
@@ -75,20 +86,20 @@ describe("dealforge", () => {
       alice,
       tokenProgram
     );
+    data = {
+      maker: alice,
+      makerOfferedTokenAccount: aliceTokenAccountA,
+      makerRequestedTokenAccount: aliceTokenAccountB,
+      offeredMint: tokenMintA,
+      requestedMint: tokenMintB,
+      taker: bob,
+      takerOfferedTokenAccount: bobTokenAccountA,
+      takerRequestedTokenAccount: bobTokenAccountB,
+    };
   });
 
   describe("makeOffer", () => {
-    it("successfully creates an offer with valid inputs", async () => {
-      const data = {
-        maker: alice,
-        makerOfferedTokenAccount: aliceTokenAccountA,
-        makerRequestedTokenAccount: aliceTokenAccountB,
-        offeredMint: tokenMintA,
-        requestedMint: tokenMintB,
-        taker: bob,
-        takerOfferedTokenAccount: bobTokenAccountA,
-        takerRequestedTokenAccount: bobTokenAccountB,
-      };
+    it("should successfully creates an offer with valid inputs", async () => {
       const { vault, offer } = await createTestOffer({
         maker: data.maker,
         offeredMint: data.offeredMint,
@@ -152,6 +163,23 @@ describe("dealforge", () => {
       await expect(fetchOffer(rpc, offer)).rejects.toThrow(
         `Account not found at address: ${offer}`
       );
+    });
+
+    it("should fail to make offer when maker has insufficient token balance", async () => {
+      const tooManyTokens = 1_000n * ONE_MINT_TOKEN;
+
+      await expect(
+        createTestOffer({
+          maker: data.maker,
+          offeredMint: data.offeredMint,
+          requestedMint: data.requestedMint,
+          makerTokenAccount: data.makerOfferedTokenAccount,
+          tokenOfferedAmount: tooManyTokens,
+          tokenRequestedAmount: tokenBWantedAmount,
+          skipPreflight: true,
+        })
+        // insufficient funds error
+      ).rejects.toThrow("custom program error: #1");
     });
   });
 });

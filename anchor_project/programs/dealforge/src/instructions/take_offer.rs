@@ -38,6 +38,7 @@ pub struct TakeOffer<'info> {
         associated_token::mint = requested_mint,
         associated_token::authority = taker,
         associated_token::token_program = token_program,
+        constraint = taker_requested_ata.amount >= offer.requested_amount @ SaleForgeError::InsufficientBalance,
     )]
     pub taker_requested_ata: InterfaceAccount<'info, TokenAccount>,
 
