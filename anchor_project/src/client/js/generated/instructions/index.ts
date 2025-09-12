@@ -7,5 +7,5 @@
  */
 
 export * from './makeOffer';
-export * from './refund';
+export * from './refundOffer';
 export * from './takeOffer';

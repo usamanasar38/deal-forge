@@ -24,7 +24,7 @@ pub mod dealforge {
         take_offer::handler(context)
     }
 
-    pub fn refund(context: Context<RefundOffer>) -> Result<()> {
-        refund::handler(context)
+    pub fn refund_offer(context: Context<RefundOffer>) -> Result<()> {
+        refund_offer::handler(context)
     }
 }

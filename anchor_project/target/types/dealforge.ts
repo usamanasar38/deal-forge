@@ -210,16 +210,16 @@ export type Dealforge = {
       ]
     },
     {
-      "name": "refund",
+      "name": "refundOffer",
       "discriminator": [
-        2,
-        96,
-        183,
-        251,
-        63,
-        208,
-        46,
-        46
+        171,
+        18,
+        70,
+        32,
+        244,
+        121,
+        60,
+        75
       ],
       "accounts": [
         {

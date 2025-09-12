@@ -15,7 +15,7 @@ import {
 } from 'gill';
 import {
   type ParsedMakeOfferInstruction,
-  type ParsedRefundInstruction,
+  type ParsedRefundOfferInstruction,
   type ParsedTakeOfferInstruction,
 } from '../instructions';
 
@@ -48,7 +48,7 @@ export function identifyDealforgeAccount(
 
 export enum DealforgeInstruction {
   MakeOffer,
-  Refund,
+  RefundOffer,
   TakeOffer,
 }
 
@@ -71,12 +71,12 @@ export function identifyDealforgeInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
-        new Uint8Array([2, 96, 183, 251, 63, 208, 46, 46])
+        new Uint8Array([171, 18, 70, 32, 244, 121, 60, 75])
       ),
       0
     )
   ) {
-    return DealforgeInstruction.Refund;
+    return DealforgeInstruction.RefundOffer;
   }
   if (
     containsBytes(
@@ -101,8 +101,8 @@ export type ParsedDealforgeInstruction<
       instructionType: DealforgeInstruction.MakeOffer;
     } & ParsedMakeOfferInstruction<TProgram>)
   | ({
-      instructionType: DealforgeInstruction.Refund;
-    } & ParsedRefundInstruction<TProgram>)
+      instructionType: DealforgeInstruction.RefundOffer;
+    } & ParsedRefundOfferInstruction<TProgram>)
   | ({
       instructionType: DealforgeInstruction.TakeOffer;
     } & ParsedTakeOfferInstruction<TProgram>);

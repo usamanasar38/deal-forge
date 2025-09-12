@@ -39,15 +39,17 @@ import {
   type ResolvedAccount,
 } from '../shared';
 
-export const REFUND_DISCRIMINATOR = new Uint8Array([
-  2, 96, 183, 251, 63, 208, 46, 46,
+export const REFUND_OFFER_DISCRIMINATOR = new Uint8Array([
+  171, 18, 70, 32, 244, 121, 60, 75,
 ]);
 
-export function getRefundDiscriminatorBytes() {
-  return fixEncoderSize(getBytesEncoder(), 8).encode(REFUND_DISCRIMINATOR);
+export function getRefundOfferDiscriminatorBytes() {
+  return fixEncoderSize(getBytesEncoder(), 8).encode(
+    REFUND_OFFER_DISCRIMINATOR
+  );
 }
 
-export type RefundInstruction<
+export type RefundOfferInstruction<
   TProgram extends string = typeof DEALFORGE_PROGRAM_ADDRESS,
   TAccountMaker extends string | AccountMeta<string> = string,
   TAccountOfferedMint extends string | AccountMeta<string> = string,
@@ -91,34 +93,34 @@ export type RefundInstruction<
     ]
   >;
 
-export type RefundInstructionData = { discriminator: ReadonlyUint8Array };
+export type RefundOfferInstructionData = { discriminator: ReadonlyUint8Array };
 
-export type RefundInstructionDataArgs = {};
+export type RefundOfferInstructionDataArgs = {};
 
-export function getRefundInstructionDataEncoder(): FixedSizeEncoder<RefundInstructionDataArgs> {
+export function getRefundOfferInstructionDataEncoder(): FixedSizeEncoder<RefundOfferInstructionDataArgs> {
   return transformEncoder(
     getStructEncoder([['discriminator', fixEncoderSize(getBytesEncoder(), 8)]]),
-    (value) => ({ ...value, discriminator: REFUND_DISCRIMINATOR })
+    (value) => ({ ...value, discriminator: REFUND_OFFER_DISCRIMINATOR })
   );
 }
 
-export function getRefundInstructionDataDecoder(): FixedSizeDecoder<RefundInstructionData> {
+export function getRefundOfferInstructionDataDecoder(): FixedSizeDecoder<RefundOfferInstructionData> {
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
   ]);
 }
 
-export function getRefundInstructionDataCodec(): FixedSizeCodec<
-  RefundInstructionDataArgs,
-  RefundInstructionData
+export function getRefundOfferInstructionDataCodec(): FixedSizeCodec<
+  RefundOfferInstructionDataArgs,
+  RefundOfferInstructionData
 > {
   return combineCodec(
-    getRefundInstructionDataEncoder(),
-    getRefundInstructionDataDecoder()
+    getRefundOfferInstructionDataEncoder(),
+    getRefundOfferInstructionDataDecoder()
   );
 }
 
-export type RefundAsyncInput<
+export type RefundOfferAsyncInput<
   TAccountMaker extends string = string,
   TAccountOfferedMint extends string = string,
   TAccountMakerOfferedAta extends string = string,
@@ -136,7 +138,7 @@ export type RefundAsyncInput<
   systemProgram?: Address<TAccountSystemProgram>;
 };
 
-export async function getRefundInstructionAsync<
+export async function getRefundOfferInstructionAsync<
   TAccountMaker extends string,
   TAccountOfferedMint extends string,
   TAccountMakerOfferedAta extends string,
@@ -146,7 +148,7 @@ export async function getRefundInstructionAsync<
   TAccountSystemProgram extends string,
   TProgramAddress extends Address = typeof DEALFORGE_PROGRAM_ADDRESS,
 >(
-  input: RefundAsyncInput<
+  input: RefundOfferAsyncInput<
     TAccountMaker,
     TAccountOfferedMint,
     TAccountMakerOfferedAta,
@@ -157,7 +159,7 @@ export async function getRefundInstructionAsync<
   >,
   config?: { programAddress?: TProgramAddress }
 ): Promise<
-  RefundInstruction<
+  RefundOfferInstruction<
     TProgramAddress,
     TAccountMaker,
     TAccountOfferedMint,
@@ -229,9 +231,9 @@ export async function getRefundInstructionAsync<
       getAccountMeta(accounts.tokenProgram),
       getAccountMeta(accounts.systemProgram),
     ],
-    data: getRefundInstructionDataEncoder().encode({}),
+    data: getRefundOfferInstructionDataEncoder().encode({}),
     programAddress,
-  } as RefundInstruction<
+  } as RefundOfferInstruction<
     TProgramAddress,
     TAccountMaker,
     TAccountOfferedMint,
@@ -243,7 +245,7 @@ export async function getRefundInstructionAsync<
   >);
 }
 
-export type RefundInput<
+export type RefundOfferInput<
   TAccountMaker extends string = string,
   TAccountOfferedMint extends string = string,
   TAccountMakerOfferedAta extends string = string,
@@ -261,7 +263,7 @@ export type RefundInput<
   systemProgram?: Address<TAccountSystemProgram>;
 };
 
-export function getRefundInstruction<
+export function getRefundOfferInstruction<
   TAccountMaker extends string,
   TAccountOfferedMint extends string,
   TAccountMakerOfferedAta extends string,
@@ -271,7 +273,7 @@ export function getRefundInstruction<
   TAccountSystemProgram extends string,
   TProgramAddress extends Address = typeof DEALFORGE_PROGRAM_ADDRESS,
 >(
-  input: RefundInput<
+  input: RefundOfferInput<
     TAccountMaker,
     TAccountOfferedMint,
     TAccountMakerOfferedAta,
@@ -281,7 +283,7 @@ export function getRefundInstruction<
     TAccountSystemProgram
   >,
   config?: { programAddress?: TProgramAddress }
-): RefundInstruction<
+): RefundOfferInstruction<
   TProgramAddress,
   TAccountMaker,
   TAccountOfferedMint,
@@ -330,9 +332,9 @@ export function getRefundInstruction<
       getAccountMeta(accounts.tokenProgram),
       getAccountMeta(accounts.systemProgram),
     ],
-    data: getRefundInstructionDataEncoder().encode({}),
+    data: getRefundOfferInstructionDataEncoder().encode({}),
     programAddress,
-  } as RefundInstruction<
+  } as RefundOfferInstruction<
     TProgramAddress,
     TAccountMaker,
     TAccountOfferedMint,
@@ -344,7 +346,7 @@ export function getRefundInstruction<
   >);
 }
 
-export type ParsedRefundInstruction<
+export type ParsedRefundOfferInstruction<
   TProgram extends string = typeof DEALFORGE_PROGRAM_ADDRESS,
   TAccountMetas extends readonly AccountMeta[] = readonly AccountMeta[],
 > = {
@@ -358,17 +360,17 @@ export type ParsedRefundInstruction<
     tokenProgram: TAccountMetas[5];
     systemProgram: TAccountMetas[6];
   };
-  data: RefundInstructionData;
+  data: RefundOfferInstructionData;
 };
 
-export function parseRefundInstruction<
+export function parseRefundOfferInstruction<
   TProgram extends string,
   TAccountMetas extends readonly AccountMeta[],
 >(
   instruction: Instruction<TProgram> &
     InstructionWithAccounts<TAccountMetas> &
     InstructionWithData<ReadonlyUint8Array>
-): ParsedRefundInstruction<TProgram, TAccountMetas> {
+): ParsedRefundOfferInstruction<TProgram, TAccountMetas> {
   if (instruction.accounts.length < 7) {
     // TODO: Coded error.
     throw new Error('Not enough accounts');
@@ -390,6 +392,6 @@ export function parseRefundInstruction<
       tokenProgram: getNextAccount(),
       systemProgram: getNextAccount(),
     },
-    data: getRefundInstructionDataDecoder().decode(instruction.data),
+    data: getRefundOfferInstructionDataDecoder().decode(instruction.data),
   };
 }
