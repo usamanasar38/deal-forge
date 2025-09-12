@@ -17,7 +17,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     >
       <div className="flex min-h-screen flex-col">
         {/* <AppHeader links={links} /> */}
-        <main className="container mx-auto flex-grow p-4">
+        <main className="relative flex w-full flex-1 flex-col bg-background">
           <ClusterChecker>
             <AccountChecker />
           </ClusterChecker>

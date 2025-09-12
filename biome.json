@@ -36,6 +36,9 @@
       "nursery": {
         "useConsistentTypeDefinitions": "off",
         "useSortedClasses": "error"
+      },
+      "performance": {
+        "noNamespaceImport": "warn"
       }
     }
   },
