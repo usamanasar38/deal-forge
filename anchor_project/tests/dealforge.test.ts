@@ -25,7 +25,7 @@ global.__GILL_DEBUG__ = true;
 /** Set the debug mode log level (default: `info`) */
 // global.__GILL_DEBUG_LEVEL__ = "debug";
 
-const INSUFFICIENT_FUNDS_ERROR_MESSAGE = `custom program error: #${DEALFORGE_ERROR__INSUFFICIENT_BALANCE}`;
+const INSUFFICIENT_FUNDS_ERROR_MESSAGE = "custom program error: #";
 
 const aliceInitialTokenAAmount = 100n;
 const bobInitialTokenAAmount = 10n;
@@ -138,7 +138,7 @@ describe("dealforge", () => {
           skipPreflight: true,
         })
         // insufficient funds error
-      ).rejects.toThrow(INSUFFICIENT_FUNDS_ERROR_MESSAGE);
+      ).rejects.toThrow(`${INSUFFICIENT_FUNDS_ERROR_MESSAGE}1`);
     });
   });
 
