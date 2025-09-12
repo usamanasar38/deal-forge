@@ -3,18 +3,11 @@
 import type React from "react";
 import { AccountChecker } from "@/components/account/account-ui";
 import { AppFooter } from "@/components/app-footer";
-import { AppHeader } from "@/components/app-header";
 import { ClusterChecker } from "@/components/cluster/cluster-ui";
 import { ThemeProvider } from "./theme-provider";
 import { Toaster } from "./ui/sonner";
 
-export function AppLayout({
-  children,
-  links,
-}: {
-  children: React.ReactNode;
-  links: { label: string; path: string }[];
-}) {
+export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider
       attribute="class"
@@ -23,7 +16,7 @@ export function AppLayout({
       enableSystem
     >
       <div className="flex min-h-screen flex-col">
-        <AppHeader links={links} />
+        {/* <AppHeader links={links} /> */}
         <main className="container mx-auto flex-grow p-4">
           <ClusterChecker>
             <AccountChecker />

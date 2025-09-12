@@ -1,5 +1,5 @@
-import { DashboardFeature } from "@/components/dashboard/dashboard-feature";
+import { DealforgeHomePage } from "@/components/dealforge/home-page";
 
 export default function Home() {
-  return <DashboardFeature />;
+  return <DealforgeHomePage />;
 }
