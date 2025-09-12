@@ -26,7 +26,7 @@ export default function AccountFeatureDetail() {
   }
 
   return (
-    <div>
+    <div className="px-4 py-4 md:py-6 lg:px-6">
       <AppHero
         subtitle={
           <div className="my-4">
