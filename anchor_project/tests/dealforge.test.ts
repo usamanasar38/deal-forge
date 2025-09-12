@@ -26,7 +26,7 @@ global.__GILL_DEBUG__ = true;
 /** Set the debug mode log level (default: `info`) */
 // global.__GILL_DEBUG_LEVEL__ = "debug";
 
-const INSUFFICIENT_FUNDS_ERROR_MESSAGE = "custom program error: #";
+const CUSTOM_FUNDS_ERROR_MESSAGE = "custom program error: #";
 
 const aliceInitialTokenAAmount = 100n;
 const bobInitialTokenAAmount = 10n;
@@ -139,7 +139,7 @@ describe("dealforge", () => {
           skipPreflight: true,
         })
         // insufficient funds error
-      ).rejects.toThrow(`${INSUFFICIENT_FUNDS_ERROR_MESSAGE}1`);
+      ).rejects.toThrow(`${CUSTOM_FUNDS_ERROR_MESSAGE}1`);
     });
   });
 
@@ -235,7 +235,7 @@ describe("dealforge", () => {
           skipPreflight: true,
         })
       ).rejects.toThrow(
-        INSUFFICIENT_FUNDS_ERROR_MESSAGE + DEALFORGE_ERROR__INSUFFICIENT_BALANCE
+        CUSTOM_FUNDS_ERROR_MESSAGE + DEALFORGE_ERROR__INSUFFICIENT_BALANCE
       );
     });
   });
@@ -285,6 +285,7 @@ describe("dealforge", () => {
         payer: data.taker,
         skipPreflight: true,
       });
+
       const [
         aliceTokenABalanceAfter,
         aliceTokenBBalanceAfter,
@@ -318,6 +319,34 @@ describe("dealforge", () => {
       await expect(fetchOffer(rpc, offer)).rejects.toThrow(
         `Account not found at address: ${offer}`
       );
+    });
+
+    it("should not refund when non maker tries refund", async () => {
+      const { vault, offer } = await createTestOffer({
+        maker: data.maker,
+        offeredMint: data.offeredMint,
+        requestedMint: data.requestedMint,
+        makerTokenAccount: data.makerOfferedTokenAccount,
+        tokenOfferedAmount: tokenAOfferedAmount,
+        tokenRequestedAmount: tokenBWantedAmount,
+      });
+
+      const refundOfferInstruction = await getRefundOfferInstructionAsync({
+        maker: data.maker,
+        offeredMint: data.offeredMint.address,
+        makerOfferedAta: data.takerOfferedTokenAccount,
+        offer,
+        vault,
+        tokenProgram,
+      });
+
+      await expect(
+        createAndConfirmTransaction({
+          ix: [refundOfferInstruction],
+          payer: data.taker,
+          skipPreflight: true,
+        })
+      ).rejects.toThrowError(`${CUSTOM_FUNDS_ERROR_MESSAGE}2015`);
     });
   });
 });
