@@ -1,11 +1,27 @@
 "use client";
 
 import { useWalletUi } from "@wallet-ui/react";
-import { ArrowRight, Globe, Handshake, Shield, Zap } from "lucide-react";
+import {
+  Activity,
+  ArrowRight,
+  Globe,
+  Handshake,
+  Shield,
+  TrendingUp,
+  Users,
+  Zap,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { WalletButton } from "@/components/solana/solana-provider";
-import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export function DealforgeHomePage() {
   const { account } = useWalletUi();
@@ -20,114 +36,225 @@ export function DealforgeHomePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Background overlay with theme colors */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/10 to-secondary/20" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(var(--primary))_0%,transparent_50%)] opacity-20" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,hsl(var(--accent))_0%,transparent_50%)] opacity-15" />
-
-      {/* Top Navigation with Wallet Button */}
-      <div className="absolute top-0 right-0 left-0 z-20">
-        <div className="flex justify-end p-6">
+      {/* Header Navigation */}
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto flex h-14 items-center justify-between px-4">
+          <div className="flex items-center space-x-2">
+            <div className="rounded-lg bg-primary p-2">
+              <Handshake className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <span className="font-bold text-xl">DealForge</span>
+          </div>
           <WalletButton />
         </div>
-      </div>
+      </header>
 
-      {/* Content */}
-      <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 py-16">
-        {/* Hero Section */}
-        <div className="mb-16 animate-fade-up text-center">
-          {/* Logo */}
-          <div className="mb-8 flex items-center justify-center">
-            <div className="rounded-xl bg-primary p-4 shadow-lg ring-1 ring-primary/20">
-              <Handshake className="h-16 w-16 text-primary-foreground" />
-            </div>
-          </div>
+      {/* Hero Section */}
+      <section className="container relative py-24 lg:py-32">
+        <div className="mx-auto flex max-w-4xl flex-col items-center text-center">
+          <Badge className="mb-4" variant="outline">
+            <Activity className="mr-2 h-3 w-3" />
+            Live on Solana Mainnet
+          </Badge>
 
-          {/* Title and Description */}
-          <h1 className="mb-6 bg-gradient-to-br from-foreground via-foreground/90 to-muted-foreground bg-clip-text font-bold text-5xl text-transparent md:text-7xl">
-            DealForge
+          <h1 className="mb-6 font-bold text-4xl tracking-tighter sm:text-6xl md:text-7xl">
+            Decentralized
+            <span className="text-primary"> OTC Trading</span>
           </h1>
-          <p className="mx-auto mb-4 max-w-2xl text-muted-foreground text-xl md:text-2xl">
-            Decentralized OTC Trading Platform built on Solana
-          </p>
-          <p className="mx-auto max-w-xl text-lg text-muted-foreground/80">
+
+          <p className="mb-8 max-w-[600px] text-lg text-muted-foreground sm:text-xl">
             Create secure escrow offers and trade tokens directly with other
-            users
+            users. Built on Solana for lightning-fast transactions with minimal
+            fees.
           </p>
-        </div>
 
-        {/* Features Grid */}
-        <div className="mb-16 grid w-full max-w-4xl animate-fade-up grid-cols-1 gap-6 [animation-delay:200ms] md:grid-cols-3">
-          <Card className="group border-border/50 bg-card/50 backdrop-blur-sm transition-all duration-300 hover:bg-card/80">
-            <CardContent className="p-6 text-center">
-              <div className="mb-4 inline-flex rounded-lg bg-chart-4/20 p-3">
-                <Zap className="h-8 w-8 text-chart-4" />
-              </div>
-              <h3 className="mb-2 font-semibold text-card-foreground text-xl">
-                Lightning Fast
-              </h3>
-              <p className="text-muted-foreground">
-                Built on Solana for instant transactions with minimal fees
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="group border-border/50 bg-card/50 backdrop-blur-sm transition-all duration-300 hover:bg-card/80">
-            <CardContent className="p-6 text-center">
-              <div className="mb-4 inline-flex rounded-lg bg-chart-2/20 p-3">
-                <Shield className="h-8 w-8 text-chart-2" />
-              </div>
-              <h3 className="mb-2 font-semibold text-card-foreground text-xl">
-                Secure Escrow
-              </h3>
-              <p className="text-muted-foreground">
-                Smart contracts ensure safe token swaps with automatic
-                settlement
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="group border-border/50 bg-card/50 backdrop-blur-sm transition-all duration-300 hover:bg-card/80">
-            <CardContent className="p-6 text-center">
-              <div className="mb-4 inline-flex rounded-lg bg-chart-1/20 p-3">
-                <Globe className="h-8 w-8 text-chart-1" />
-              </div>
-              <h3 className="mb-2 font-semibold text-card-foreground text-xl">
-                Decentralized
-              </h3>
-              <p className="text-muted-foreground">
-                No intermediaries, trade directly peer-to-peer with full control
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Call to Action */}
-        {!account && (
-          <div className="animate-fade-up text-center [animation-delay:400ms]">
-            <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm">
+          {!account && (
+            <div className="flex items-center gap-2 text-muted-foreground text-sm">
               <span>Connect your wallet to get started</span>
               <ArrowRight className="h-4 w-4" />
             </div>
-          </div>
-        )}
+          )}
+        </div>
+      </section>
 
-        {/* Stats Section */}
-        <div className="mt-20 grid w-full max-w-2xl animate-fade-up grid-cols-1 gap-8 text-center [animation-delay:600ms] md:grid-cols-3">
-          <div className="rounded-lg border border-border/50 bg-card/30 p-6 backdrop-blur-sm">
-            <div className="mb-2 font-bold text-3xl text-foreground">24/7</div>
-            <div className="text-muted-foreground">Always Available</div>
-          </div>
-          <div className="rounded-lg border border-border/50 bg-card/30 p-6 backdrop-blur-sm">
-            <div className="mb-2 font-bold text-3xl text-foreground">0%</div>
-            <div className="text-muted-foreground">Platform Fees</div>
-          </div>
-          <div className="rounded-lg border border-border/50 bg-card/30 p-6 backdrop-blur-sm">
-            <div className="mb-2 font-bold text-3xl text-foreground">100%</div>
-            <div className="text-muted-foreground">Decentralized</div>
+      {/* Metrics Section */}
+      <section className="container py-16">
+        <div className="mx-auto grid max-w-5xl gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="font-medium text-muted-foreground text-sm">
+                Total Volume
+              </CardTitle>
+              <Activity className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="font-bold text-2xl">$2.4M</div>
+              <div className="flex items-center space-x-2 text-muted-foreground text-xs">
+                <TrendingUp className="h-3 w-3 text-emerald-500" />
+                <span className="text-emerald-500">+20.1%</span>
+                <span>from last month</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="font-medium text-muted-foreground text-sm">
+                Active Offers
+              </CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="font-bold text-2xl">1,248</div>
+              <div className="flex items-center space-x-2 text-muted-foreground text-xs">
+                <TrendingUp className="h-3 w-3 text-emerald-500" />
+                <span className="text-emerald-500">+12.5%</span>
+                <span>from last week</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="font-medium text-muted-foreground text-sm">
+                Avg Transaction Time
+              </CardTitle>
+              <Zap className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="font-bold text-2xl">0.4s</div>
+              <div className="flex items-center space-x-2 text-muted-foreground text-xs">
+                <TrendingUp className="h-3 w-3 text-emerald-500" />
+                <span className="text-emerald-500">99.9%</span>
+                <span>success rate</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="font-medium text-muted-foreground text-sm">
+                Platform Fees
+              </CardTitle>
+              <Shield className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="font-bold text-2xl">0%</div>
+              <div className="text-muted-foreground text-xs">
+                Always free to use
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="container py-16">
+        <div className="mx-auto max-w-4xl text-center">
+          <h2 className="mb-4 font-bold text-3xl tracking-tighter sm:text-4xl">
+            Why Choose DealForge?
+          </h2>
+          <p className="mb-12 text-lg text-muted-foreground">
+            Experience the future of decentralized trading with our cutting-edge
+            platform
+          </p>
+        </div>
+
+        <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-3">
+          <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-chart-4/10 to-chart-4/5 transition-all hover:shadow-lg">
+            <CardHeader>
+              <div className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-chart-4/20">
+                <Zap className="h-5 w-5 text-chart-4" />
+              </div>
+              <CardTitle>Lightning Fast</CardTitle>
+              <CardDescription>
+                Built on Solana's high-performance blockchain for instant
+                settlements
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground text-sm">
+                Execute trades in milliseconds with minimal transaction costs.
+                Our platform leverages Solana's speed for the best trading
+                experience.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-chart-2/10 to-chart-2/5 transition-all hover:shadow-lg">
+            <CardHeader>
+              <div className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-chart-2/20">
+                <Shield className="h-5 w-5 text-chart-2" />
+              </div>
+              <CardTitle>Secure Escrow</CardTitle>
+              <CardDescription>
+                Smart contracts ensure safe token swaps with automatic
+                settlement
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground text-sm">
+                Your funds are protected by battle-tested smart contracts. Trade
+                with confidence knowing your assets are secure.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="group relative overflow-hidden border-0 bg-gradient-to-br from-chart-1/10 to-chart-1/5 transition-all hover:shadow-lg">
+            <CardHeader>
+              <div className="mb-2 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-chart-1/20">
+                <Globe className="h-5 w-5 text-chart-1" />
+              </div>
+              <CardTitle>Fully Decentralized</CardTitle>
+              <CardDescription>
+                No intermediaries, trade directly peer-to-peer with full control
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground text-sm">
+                Maintain complete control over your assets. No centralized
+                authority, no single point of failure.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="container py-24">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="mb-4 font-bold text-3xl tracking-tighter">
+            Ready to Start Trading?
+          </h2>
+          <p className="mb-8 text-lg text-muted-foreground">
+            Join thousands of traders already using DealForge for secure, fast,
+            and decentralized OTC trading.
+          </p>
+          {!account && (
+            <div className="flex items-center justify-center gap-2 text-muted-foreground">
+              <span>Connect your wallet above to access the platform</span>
+              <ArrowRight className="h-4 w-4" />
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t bg-muted/50">
+        <div className="container py-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="rounded-lg bg-primary p-1.5">
+                <Handshake className="h-4 w-4 text-primary-foreground" />
+              </div>
+              <span className="font-semibold">DealForge</span>
+            </div>
+            <p className="text-muted-foreground text-sm">
+              Built with ❤️ on Solana
+            </p>
           </div>
         </div>
-      </div>
+      </footer>
     </div>
   );
 }
