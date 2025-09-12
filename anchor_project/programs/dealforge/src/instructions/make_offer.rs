@@ -1,6 +1,6 @@
 use super::shared::transfer_tokens;
-use crate::error::SaleForgeError;
-use crate::state::{Offer, OfferStatus, OFFER_SEED};
+use crate::errors::DealForgeError;
+use crate::state::{Offer, OFFER_SEED};
 use anchor_lang::prelude::*;
 use anchor_lang::Discriminator;
 use anchor_spl::{
@@ -25,7 +25,7 @@ pub struct MakeOffer<'info> {
         associated_token::mint = offered_mint,
         associated_token::authority = maker,
         associated_token::token_program = token_program,
-        constraint = maker_offered_ata.amount >= offer.offered_mint @ SaleForgeError::InsufficientBalance,
+        constraint = maker_offered_ata.amount >= offer.offered_amount @ DealForgeError::InsufficientBalance,
     )]
     pub maker_offered_ata: InterfaceAccount<'info, TokenAccount>,
 

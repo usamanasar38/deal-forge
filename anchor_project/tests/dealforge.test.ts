@@ -2,7 +2,11 @@ import type { Address, KeyPairSigner } from "gill";
 import { loadKeypairSignerFromFile } from "gill/node";
 import { getAssociatedTokenAccountAddress } from "gill/programs";
 import { beforeAll, describe, expect, it } from "vitest";
-import { fetchOffer, getTakeOfferInstructionAsync } from "../src";
+import {
+  DEALFORGE_ERROR__INSUFFICIENT_BALANCE,
+  fetchOffer,
+  getTakeOfferInstructionAsync,
+} from "../src";
 import {
   createAndConfirmTransaction,
   createTestOffer,
@@ -21,7 +25,7 @@ global.__GILL_DEBUG__ = true;
 /** Set the debug mode log level (default: `info`) */
 // global.__GILL_DEBUG_LEVEL__ = "debug";
 
-const INSUFFICIENT_FUNDS_ERROR_MESSAGE = "custom program error: #1";
+const INSUFFICIENT_FUNDS_ERROR_MESSAGE = `custom program error: #${DEALFORGE_ERROR__INSUFFICIENT_BALANCE}`;
 
 const aliceInitialTokenAAmount = 100n;
 const bobInitialTokenAAmount = 10n;

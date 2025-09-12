@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/dealforge.json`.
  */
 export type Dealforge = {
-  "address": "2KA5prsnpfHg38Gw5tz97NborpHKejFQgcu24GvmMzVd",
+  "address": "HbnNErNN9bF8ns2consmobzCmWUwJr9Qi2wGp7ttcGhV",
   "metadata": {
     "name": "dealforge",
     "version": "0.1.0",
@@ -208,6 +208,186 @@ export type Dealforge = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "refund",
+      "discriminator": [
+        2,
+        96,
+        183,
+        251,
+        63,
+        208,
+        46,
+        46
+      ],
+      "accounts": [
+        {
+          "name": "maker",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "offer"
+          ]
+        },
+        {
+          "name": "offeredMint"
+        },
+        {
+          "name": "makerOfferedAta",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "maker"
+              },
+              {
+                "kind": "account",
+                "path": "tokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "offeredMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "offer",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  79,
+                  70,
+                  70,
+                  69,
+                  82,
+                  95,
+                  83,
+                  69,
+                  69,
+                  68
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "maker"
+              },
+              {
+                "kind": "account",
+                "path": "offer.id",
+                "account": "offer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "offer"
+              },
+              {
+                "kind": "account",
+                "path": "tokenProgram"
+              },
+              {
+                "kind": "account",
+                "path": "offeredMint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "tokenProgram"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
     },
     {
       "name": "takeOffer",
@@ -613,13 +793,6 @@ export type Dealforge = {
             "type": "pubkey"
           },
           {
-            "name": "vault",
-            "docs": [
-              "The token account that will hold maker’s offered tokens (PDA vault)"
-            ],
-            "type": "pubkey"
-          },
-          {
             "name": "offeredMint",
             "docs": [
               "The token mint being offered"
@@ -648,46 +821,12 @@ export type Dealforge = {
             "type": "u64"
           },
           {
-            "name": "status",
-            "docs": [
-              "Expiry timestamp (unix time), after which initializer can cancel",
-              "Status of the deal-forge (e.g., Active, Completed, Canceled)"
-            ],
-            "type": {
-              "defined": {
-                "name": "offerStatus"
-              }
-            }
-          },
-          {
             "name": "bump",
             "docs": [
+              "Expiry timestamp (unix time), after which initializer can cancel",
               "PDA bump seed (to derive vault PDA)"
             ],
             "type": "u8"
-          }
-        ]
-      }
-    },
-    {
-      "name": "offerStatus",
-      "docs": [
-        "Possible states of an deal-forge"
-      ],
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "active"
-          },
-          {
-            "name": "fulfilled"
-          },
-          {
-            "name": "canceled"
-          },
-          {
-            "name": "expired"
           }
         ]
       }

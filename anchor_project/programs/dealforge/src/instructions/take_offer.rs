@@ -5,8 +5,8 @@ use anchor_spl::{
     token_interface::{Mint, TokenAccount, TokenInterface},
 };
 
-use crate::error::*;
-use crate::state::{Offer, OfferStatus, OFFER_SEED};
+use crate::errors::DealForgeError;
+use crate::state::{Offer, OFFER_SEED};
 
 use super::shared::{close_token_account, transfer_tokens};
 
@@ -38,7 +38,7 @@ pub struct TakeOffer<'info> {
         associated_token::mint = requested_mint,
         associated_token::authority = taker,
         associated_token::token_program = token_program,
-        constraint = taker_requested_ata.amount >= offer.requested_amount @ SaleForgeError::InsufficientBalance,
+        constraint = taker_requested_ata.amount >= offer.requested_amount @ DealForgeError::InsufficientBalance,
     )]
     pub taker_requested_ata: InterfaceAccount<'info, TokenAccount>,
 

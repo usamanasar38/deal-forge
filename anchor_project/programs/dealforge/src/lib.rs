@@ -1,11 +1,11 @@
-pub mod error;
+pub mod errors;
 pub mod instructions;
 pub mod state;
 
 use anchor_lang::prelude::*;
 use instructions::*;
 
-declare_id!("2KA5prsnpfHg38Gw5tz97NborpHKejFQgcu24GvmMzVd");
+declare_id!("HbnNErNN9bF8ns2consmobzCmWUwJr9Qi2wGp7ttcGhV");
 
 #[program]
 pub mod dealforge {
@@ -23,7 +23,8 @@ pub mod dealforge {
     pub fn take_offer(context: Context<TakeOffer>) -> Result<()> {
         take_offer::handler(context)
     }
-}
 
-#[derive(Accounts)]
-pub struct Initialize {}
+    pub fn refund(context: Context<RefundOffer>) -> Result<()> {
+        refund::handler(context)
+    }
+}

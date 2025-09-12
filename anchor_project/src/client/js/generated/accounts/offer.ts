@@ -38,12 +38,6 @@ import {
   type MaybeEncodedAccount,
   type ReadonlyUint8Array,
 } from 'gill';
-import {
-  getOfferStatusDecoder,
-  getOfferStatusEncoder,
-  type OfferStatus,
-  type OfferStatusArgs,
-} from '../types';
 
 export const OFFER_DISCRIMINATOR = new Uint8Array([
   215, 88, 60, 71, 170, 162, 73, 229,
@@ -59,8 +53,6 @@ export type Offer = {
   id: bigint;
   /** The maker (offer creator) */
   maker: Address;
-  /** The token account that will hold maker’s offered tokens (PDA vault) */
-  vault: Address;
   /** The token mint being offered */
   offeredMint: Address;
   /** The token mint that initializer is requesting */
@@ -71,10 +63,8 @@ export type Offer = {
   requestedAmount: bigint;
   /**
    * Expiry timestamp (unix time), after which initializer can cancel
-   * Status of the deal-forge (e.g., Active, Completed, Canceled)
+   * PDA bump seed (to derive vault PDA)
    */
-  status: OfferStatus;
-  /** PDA bump seed (to derive vault PDA) */
   bump: number;
 };
 
@@ -83,8 +73,6 @@ export type OfferArgs = {
   id: number | bigint;
   /** The maker (offer creator) */
   maker: Address;
-  /** The token account that will hold maker’s offered tokens (PDA vault) */
-  vault: Address;
   /** The token mint being offered */
   offeredMint: Address;
   /** The token mint that initializer is requesting */
@@ -95,10 +83,8 @@ export type OfferArgs = {
   requestedAmount: number | bigint;
   /**
    * Expiry timestamp (unix time), after which initializer can cancel
-   * Status of the deal-forge (e.g., Active, Completed, Canceled)
+   * PDA bump seed (to derive vault PDA)
    */
-  status: OfferStatusArgs;
-  /** PDA bump seed (to derive vault PDA) */
   bump: number;
 };
 
@@ -108,12 +94,10 @@ export function getOfferEncoder(): FixedSizeEncoder<OfferArgs> {
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
       ['id', getU64Encoder()],
       ['maker', getAddressEncoder()],
-      ['vault', getAddressEncoder()],
       ['offeredMint', getAddressEncoder()],
       ['requestedMint', getAddressEncoder()],
       ['offeredAmount', getU64Encoder()],
       ['requestedAmount', getU64Encoder()],
-      ['status', getOfferStatusEncoder()],
       ['bump', getU8Encoder()],
     ]),
     (value) => ({ ...value, discriminator: OFFER_DISCRIMINATOR })
@@ -125,12 +109,10 @@ export function getOfferDecoder(): FixedSizeDecoder<Offer> {
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
     ['id', getU64Decoder()],
     ['maker', getAddressDecoder()],
-    ['vault', getAddressDecoder()],
     ['offeredMint', getAddressDecoder()],
     ['requestedMint', getAddressDecoder()],
     ['offeredAmount', getU64Decoder()],
     ['requestedAmount', getU64Decoder()],
-    ['status', getOfferStatusDecoder()],
     ['bump', getU8Decoder()],
   ]);
 }
@@ -193,5 +175,5 @@ export async function fetchAllMaybeOffer(
 }
 
 export function getOfferSize(): number {
-  return 162;
+  return 129;
 }

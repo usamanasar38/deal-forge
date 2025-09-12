@@ -15,11 +15,12 @@ import {
 } from 'gill';
 import {
   type ParsedMakeOfferInstruction,
+  type ParsedRefundInstruction,
   type ParsedTakeOfferInstruction,
 } from '../instructions';
 
 export const DEALFORGE_PROGRAM_ADDRESS =
-  '2KA5prsnpfHg38Gw5tz97NborpHKejFQgcu24GvmMzVd' as Address<'2KA5prsnpfHg38Gw5tz97NborpHKejFQgcu24GvmMzVd'>;
+  'HbnNErNN9bF8ns2consmobzCmWUwJr9Qi2wGp7ttcGhV' as Address<'HbnNErNN9bF8ns2consmobzCmWUwJr9Qi2wGp7ttcGhV'>;
 
 export enum DealforgeAccount {
   Offer,
@@ -47,6 +48,7 @@ export function identifyDealforgeAccount(
 
 export enum DealforgeInstruction {
   MakeOffer,
+  Refund,
   TakeOffer,
 }
 
@@ -69,6 +71,17 @@ export function identifyDealforgeInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([2, 96, 183, 251, 63, 208, 46, 46])
+      ),
+      0
+    )
+  ) {
+    return DealforgeInstruction.Refund;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
         new Uint8Array([128, 156, 242, 207, 237, 192, 103, 240])
       ),
       0
@@ -82,11 +95,14 @@ export function identifyDealforgeInstruction(
 }
 
 export type ParsedDealforgeInstruction<
-  TProgram extends string = '2KA5prsnpfHg38Gw5tz97NborpHKejFQgcu24GvmMzVd',
+  TProgram extends string = 'HbnNErNN9bF8ns2consmobzCmWUwJr9Qi2wGp7ttcGhV',
 > =
   | ({
       instructionType: DealforgeInstruction.MakeOffer;
     } & ParsedMakeOfferInstruction<TProgram>)
+  | ({
+      instructionType: DealforgeInstruction.Refund;
+    } & ParsedRefundInstruction<TProgram>)
   | ({
       instructionType: DealforgeInstruction.TakeOffer;
     } & ParsedTakeOfferInstruction<TProgram>);
