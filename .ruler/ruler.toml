@@ -1,0 +1,42 @@
+# Ruler Configuration File for Deal-forge Escrow Platform
+# See https://ai.intellectronica.net/ruler for documentation.
+
+# Active agents for this project
+default_agents = ["claude", "copilot", "cursor", "opencode", "gemini-cli",]
+
+# Enable nested rule loading from nested .ruler directories
+# This allows for more granular rule application across different parts of the codebase
+nested = true
+
+# --- Agent Specific Configurations ---
+# Configured for Deal-forge development workflow
+
+[agents.claude]
+enabled = true
+# Uses default output path for Claude Code
+
+[agents.copilot]
+enabled = true
+output_path = ".github/copilot-instructions.md"
+
+[agents.cursor]
+enabled = true
+# Uses default output path for Cursor
+
+[agents.aider]
+enabled = false
+# Disabled for this project
+
+# --- MCP Servers ---
+# Define Model Context Protocol servers here. Two examples:
+# 1. A stdio server (local executable)
+# 2. A remote server (HTTP-based)
+
+# [mcp_servers.example_stdio]
+# command = "node"
+# args = ["scripts/your-mcp-server.js"]
+# env = { API_KEY = "replace_me" }
+
+# [mcp_servers.example_remote]
+# url = "https://api.example.com/mcp"
+# headers = { Authorization = "Bearer REPLACE_ME" }
