@@ -144,11 +144,12 @@ describe("dealforge", () => {
         expectedError: DEALFORGE_ERROR__INVALID_REQUESTED_MINT_AMOUNT,
       },
     ])(
-      "should fail to make offer when maker offered token are 0",
+      "should fail to make offer when",
       async (
         { offeredAmount, requestedAmount, expectedError },
         { expect: localExpect }
       ) => {
+        console.log(offeredAmount, requestedAmount);
         await localExpect(
           createTestOffer({
             maker: data.maker,

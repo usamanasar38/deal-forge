@@ -57,22 +57,20 @@ pub fn handler(
     offered_amount: u64,
     requested_amount: u64,
 ) -> Result<()> {
-    msg!("offeredAmount: {} {}", offered_amount > 0, offered_amount);
-    msg!(
-        "requested_amount: {} {}",
-        requested_amount > 0,
-        requested_amount
-    );
     require!(offered_amount > 0, DealForgeError::InvalidOfferedMintAmount);
     require!(
         requested_amount > 0,
         DealForgeError::InvalidRequestedMintAmount
     );
-
     require!(
-        context.accounts.maker_offered_ata.amount >= offered_amount,
+        offered_amount <= context.accounts.maker_offered_ata.amount,
         DealForgeError::InsufficientBalance
     );
+    require!(
+        requested_amount <= context.accounts.requested_mint.supply,
+        DealForgeError::ExceedsAvailableQuantity
+    );
+
     transfer_tokens(
         &context.accounts.maker_offered_ata,
         &context.accounts.vault,
