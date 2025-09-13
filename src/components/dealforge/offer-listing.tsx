@@ -1,5 +1,6 @@
 "use client";
 
+import type { Offer } from "@project/anchor";
 import { ellipsify, useWalletUi } from "@wallet-ui/react";
 import { type Address, address } from "gill";
 import { useState } from "react";
@@ -18,7 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
   useOfferQuery,
-  useOffersQuery,
+  useOffersPaginated,
   useRefundOfferMutation,
   useTakeOfferMutation,
 } from "./dealforge-data-access";
@@ -28,7 +29,6 @@ interface OfferSearchProps {
 }
 
 function OfferSearch({ onOfferFound }: OfferSearchProps) {
-  useOffersQuery();
   const [makerAddress, setMakerAddress] = useState("");
   const [offerId, setOfferId] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -51,9 +51,9 @@ function OfferSearch({ onOfferFound }: OfferSearchProps) {
   return (
     <Card className="mx-auto w-full max-w-md">
       <CardHeader>
-        <CardTitle>Search Offer</CardTitle>
+        <CardTitle>Search Specific Offer</CardTitle>
         <CardDescription>
-          Enter maker address and offer ID to view an offer
+          Enter maker address and offer ID to view a specific offer
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -112,8 +112,7 @@ function OfferDetails({ maker, offerId, onClose }: OfferDetailsProps) {
     if (!offer) return;
 
     await takeOfferMutation.mutateAsync({
-      maker,
-      offerId,
+      offer,
       offeredMint: offer.offeredMint,
       requestedMint: offer.requestedMint,
     });
@@ -259,7 +258,179 @@ function OfferDetails({ maker, offerId, onClose }: OfferDetailsProps) {
   );
 }
 
+interface OfferCardProps {
+  readonly offer: { pubkey: Address; account: Offer };
+  readonly onClick: () => void;
+}
+
+function OfferCard({ offer, onClick }: OfferCardProps) {
+  const { account } = useWalletUi();
+  const isOwner = account?.address === offer.account.maker;
+
+  const formatAmount = (amount: bigint) => {
+    const DECIMALS = 1_000_000_000n;
+    return (Number(amount) / Number(DECIMALS)).toFixed(4);
+  };
+
+  return (
+    <Card
+      className="cursor-pointer transition-colors hover:bg-muted/50"
+      onClick={onClick}
+    >
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Badge variant={isOwner ? "secondary" : "outline"}>
+                {isOwner
+                  ? "Your Offer"
+                  : `Offer #${offer.account.id.toString()}`}
+              </Badge>
+            </div>
+            <div className="flex items-center gap-4 text-sm">
+              <div className="text-green-600">
+                <span className="font-semibold">
+                  {formatAmount(offer.account.offeredAmount)}
+                </span>
+                <span className="ml-1 text-muted-foreground">
+                  {ellipsify(offer.account.offeredMint.toString(), 6)}
+                </span>
+              </div>
+              <span className="text-muted-foreground">→</span>
+              <div className="text-blue-600">
+                <span className="font-semibold">
+                  {formatAmount(offer.account.requestedAmount)}
+                </span>
+                <span className="ml-1 text-muted-foreground">
+                  {ellipsify(offer.account.requestedMint.toString(), 6)}
+                </span>
+              </div>
+            </div>
+            <div className="text-muted-foreground text-xs">
+              Maker: {ellipsify(offer.account.maker.toString())}
+            </div>
+          </div>
+          <Button size="sm" variant="ghost">
+            View Details
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function AllOffersList() {
+  const {
+    data,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetching,
+    isFetchingNextPage,
+    isLoading,
+  } = useOffersPaginated();
+
+  const [selectedOffer, setSelectedOffer] = useState<{
+    maker: Address;
+    offerId: bigint;
+  } | null>(null);
+
+  const allOffers = data?.pages.flat() || [];
+
+  const handleOfferClick = (offer: { pubkey: Address; account: Offer }) => {
+    setSelectedOffer({
+      maker: offer.account.maker,
+      offerId: offer.account.id,
+    });
+  };
+
+  if (selectedOffer) {
+    return (
+      <OfferDetails
+        maker={selectedOffer.maker}
+        offerId={selectedOffer.offerId}
+        onClose={() => setSelectedOffer(null)}
+      />
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-8">
+          <div className="text-center">
+            <div className="text-muted-foreground">Loading offers...</div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="p-8">
+          <div className="text-center">
+            <div className="text-destructive">Error loading offers</div>
+            <div className="mt-2 text-muted-foreground text-sm">
+              {error instanceof Error ? error.message : "Unknown error"}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (allOffers.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-8">
+          <div className="text-center">
+            <div className="text-muted-foreground">No offers found</div>
+            <div className="mt-2 text-muted-foreground text-sm">
+              Be the first to create an offer!
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-4">
+        {allOffers.map((offer) => (
+          <OfferCard
+            key={offer.pubkey.toString()}
+            offer={offer}
+            onClick={() => handleOfferClick(offer)}
+          />
+        ))}
+      </div>
+
+      {hasNextPage && (
+        <div className="flex justify-center">
+          <Button
+            disabled={isFetchingNextPage}
+            onClick={() => fetchNextPage()}
+            variant="outline"
+          >
+            {isFetchingNextPage ? "Loading more..." : "Load More Offers"}
+          </Button>
+        </div>
+      )}
+
+      {isFetching && !isFetchingNextPage && (
+        <div className="flex justify-center">
+          <div className="text-muted-foreground text-sm">Refreshing...</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function OfferListing() {
+  const [view, setView] = useState<"all" | "search">("all");
   const [searchParams, setSearchParams] = useState<{
     maker: Address;
     offerId: bigint;
@@ -269,8 +440,9 @@ export function OfferListing() {
     setSearchParams({ maker, offerId });
   };
 
-  const handleBack = () => {
+  const handleBackToList = () => {
     setSearchParams(null);
+    setView("all");
   };
 
   if (searchParams) {
@@ -278,10 +450,33 @@ export function OfferListing() {
       <OfferDetails
         maker={searchParams.maker}
         offerId={searchParams.offerId}
-        onClose={handleBack}
+        onClose={handleBackToList}
       />
     );
   }
 
-  return <OfferSearch onOfferFound={handleOfferFound} />;
+  return (
+    <div className="space-y-6">
+      <div className="flex gap-2">
+        <Button
+          onClick={() => setView("all")}
+          variant={view === "all" ? "default" : "outline"}
+        >
+          All Offers
+        </Button>
+        <Button
+          onClick={() => setView("search")}
+          variant={view === "search" ? "default" : "outline"}
+        >
+          Search Specific Offer
+        </Button>
+      </div>
+
+      {view === "all" ? (
+        <AllOffersList />
+      ) : (
+        <OfferSearch onOfferFound={handleOfferFound} />
+      )}
+    </div>
+  );
 }

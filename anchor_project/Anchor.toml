@@ -8,11 +8,14 @@ skip-lint = false
 [programs.localnet]
 dealforge = "CL6frD87dGURF5LdxGD7yTdGmcmeFH3cCjEbf3JMmpG2"
 
+[programs.devnet]
+dealforge = "CL6frD87dGURF5LdxGD7yTdGmcmeFH3cCjEbf3JMmpG2"
+
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
+cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

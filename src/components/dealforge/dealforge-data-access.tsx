@@ -93,13 +93,11 @@ export async function fetchOffersPage(
   // Fetch raw accounts with discriminator filter
   const accounts = await rpc
     .getProgramAccounts(programId, {
-      encoding: "base64",
       filters: [
         {
           memcmp: {
             offset: 0n,
-            encode: "base64",
-            bytes: Buffer.from(OFFER_DISCRIMINATOR).toString("base64"),
+            bytes: Array.from(OFFER_DISCRIMINATOR),
           },
         },
       ],
