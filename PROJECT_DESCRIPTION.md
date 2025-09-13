@@ -2,78 +2,106 @@
 
 **Deployed Frontend URL:** [TODO: Link to your deployed frontend]
 
-**Solana Program ID:** [TODO: Your deployed program's public key]
+**Solana Program ID:** CL6frD87dGURF5LdxGD7yTdGmcmeFH3cCjEbf3JMmpG2
 
 ## Project Overview
 
 ### Description
-[TODO: Provide a comprehensive description of your dApp. Explain what it does. Be detailed about the core functionality.]
+
+DealForge is a Decentralized OTC Trading Platform built on Solana that enables secure peer-to-peer token swaps through an escrow system. Users can create token swap offers, specifying the tokens they want to trade and the tokens they want in return. The platform uses smart contracts to hold offered tokens in escrow until a counterparty accepts the trade, ensuring trustless and atomic swaps without the need for intermediaries.
 
 ### Key Features
-[TODO: List the main features of your dApp. Be specific about what users can do.]
 
-- Feature 1: [Description]
-- Feature 2: [Description]
-- ...
-  
+- **Create Offers**: Users can create token swap offers by specifying offered and requested tokens with amounts
+- **Browse Offers**: View all available offers in a paginated list with detailed information
+- **Take Offers**: Accept any available offer to complete the token swap instantly
+- **Refund Offers**: Offer creators can cancel and refund their offers at any time
+- **Escrow Security**: All offered tokens are held securely in program-controlled accounts until trade completion
+- **Wallet Integration**: Seamless connection with Solana wallets for transaction signing
+
 ### How to Use the dApp
-[TODO: Provide step-by-step instructions for users to interact with your dApp]
 
-1. **Connect Wallet**
-2. **Main Action 1:** [Step-by-step instructions]
-3. **Main Action 2:** [Step-by-step instructions]
-4. ...
+1. **Connect Wallet** - Connect your Solana wallet to access trading features
+2. **Create Offer** - Navigate to "Create Offer" page, enter token mint addresses and amounts for the swap
+3. **Browse Offers** - View all available offers on the dashboard with token details and amounts
+4. **Take Offers** - Click on any offer to view details and execute the swap by clicking "Take Offer"
+5. **Manage Your Offers** - View your own offers (marked with "Your Offer" badge) and refund if needed
 
 ## Program Architecture
-[TODO: Describe your Solana program's architecture. Explain the main instructions, account structures, and data flow.]
+
+The DealForge program implements a secure escrow-based token trading system using three core instructions that manage offer lifecycle. The architecture ensures atomic swaps by holding offered tokens in program-controlled accounts until trades are completed or cancelled.
 
 ### PDA Usage
-[TODO: Explain how you implemented Program Derived Addresses (PDAs) in your project. What seeds do you use and why?]
+
+The program leverages Program Derived Addresses to create deterministic and secure accounts for offers and token vaults.
 
 **PDAs Used:**
-- PDA 1: [Purpose and description]
-- PDA 2: [Purpose and description]
+
+- **Offer PDA**: Derived from seeds `["OFFER_SEED", maker_pubkey, offer_id]` - creates unique offer accounts for each user's offers, preventing conflicts and ensuring only the maker can manage their offers
+- **Vault PDA**: Associated Token Account owned by the Offer PDA - securely holds escrowed tokens using the offer account as authority, ensuring tokens can only be released through program instructions
 
 ### Program Instructions
-[TODO: List and describe all the instructions in your Solana program]
 
 **Instructions Implemented:**
-- Instruction 1: [Description of what it does]
-- Instruction 2: [Description of what it does]
-- ...
+
+- **make_offer**: Creates a new offer by initializing an offer account and transferring offered tokens to escrow vault
+- **take_offer**: Completes a trade by transferring escrowed tokens to taker and requested tokens from taker to maker
+- **refund_offer**: Allows offer maker to cancel their offer and retrieve escrowed tokens from the vault
 
 ### Account Structure
-[TODO: Describe your main account structures and their purposes]
 
 ```rust
-// Example account structure (replace with your actual structs)
 #[account]
-pub struct YourAccountName {
-    // Describe each field
+#[derive(InitSpace)]
+pub struct Offer {
+    /// Unique identifier for the offer (counter for each user)
+    pub id: u64,
+
+    /// The maker (offer creator)
+    pub maker: Pubkey,
+
+    /// The token mint being offered
+    pub offered_mint: Pubkey,
+
+    /// The token mint that maker is requesting
+    pub requested_mint: Pubkey,
+
+    /// Amount of offered tokens (with token decimals)
+    pub offered_amount: u64,
+
+    /// Amount of requested tokens (with token decimals)
+    pub requested_amount: u64,
+
+    /// PDA bump seed (for deriving vault PDA)
+    pub bump: u8,
 }
 ```
 
 ## Testing
 
 ### Test Coverage
-[TODO: Describe your testing approach and what scenarios you covered]
+
+The project includes comprehensive tests covering all core functionality with both successful operations and error conditions to ensure program security and reliability.
 
 **Happy Path Tests:**
-- Test 1: [Description]
-- Test 2: [Description]
-- ...
+
+- **Make Offer**: Successfully creates offer account, transfers tokens to vault, and stores offer data
+- **Take Offer**: Properly executes atomic swap by transferring tokens between maker and taker
+- **Refund Offer**: Allows maker to cancel offer and retrieve escrowed tokens from vault
 
 **Unhappy Path Tests:**
-- Test 1: [Description of error scenario]
-- Test 2: [Description of error scenario]
-- ...
+
+- **Insufficient Balance**: Fails when maker tries to create offer without enough tokens
+- **Unauthorized Refund**: Fails when non-maker tries to refund someone else's offer
+- **Invalid Token Mints**: Fails with invalid or non-existent token mint addresses
+- **Duplicate Offer ID**: Fails when trying to create offer with existing ID for same maker
 
 ### Running Tests
+
 ```bash
-# Commands to run your tests
-anchor test
+npm run anchor-test     # Run Anchor program tests
 ```
 
 ### Additional Notes for Evaluators
 
-[TODO: Add any specific notes or context that would help evaluators understand your project better]
+This OTC trading platform demonstrates several key Solana development concepts including PDA usage for deterministic account creation, escrow mechanics for secure token holding, and atomic swaps for trustless trading. The frontend uses modern React patterns with TanStack Query for state management and Gill for type-safe Solana interactions. The project emphasizes security through proper account validation and error handling throughout the trading lifecycle.
