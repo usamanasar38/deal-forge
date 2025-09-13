@@ -32,6 +32,7 @@ import {
   type SolanaRpcApi,
 } from "gill";
 import {
+  fetchMint,
   getAssociatedTokenAccountAddress,
   TOKEN_2022_PROGRAM_ADDRESS,
 } from "gill/programs";
@@ -236,6 +237,7 @@ export function useMakeOfferMutation() {
   const txSigner = useWalletUiSigner();
   const signAndSend = useWalletTransactionSignAndSend();
   const queryClient = useQueryClient();
+  const { client } = useWalletUi();
 
   return useMutation({
     mutationFn: async ({
@@ -248,19 +250,35 @@ export function useMakeOfferMutation() {
       offerId: bigint;
       offeredMint: Address;
       requestedMint: Address;
-      offeredAmount: bigint;
-      requestedAmount: bigint;
+      offeredAmount: number;
+      requestedAmount: number;
     }) => {
       if (!txSigner.address) {
         throw new Error("Wallet not connected");
       }
 
+      const [offeredMintAccount, requestedMintAccount] = await Promise.all([
+        fetchMint(client.rpc, offeredMint),
+        fetchMint(client.rpc, requestedMint),
+      ]);
+      if (!offeredMintAccount?.data) {
+        throw new Error("Invalid offered Mint");
+      }
+
+      if (!requestedMintAccount?.data) {
+        throw new Error("Invalid requested Mint");
+      }
+
       const instruction = await getMakeOfferInstructionAsync({
         id: offerId,
         offeredMint,
-        offeredAmount,
+        offeredAmount: BigInt(
+          Math.floor(offeredAmount * 10 ** offeredMintAccount.data.decimals)
+        ),
         requestedMint,
-        requestedAmount,
+        requestedAmount: BigInt(
+          Math.floor(requestedAmount * 10 ** requestedMintAccount.data.decimals)
+        ),
         maker: txSigner,
       });
 

@@ -62,7 +62,10 @@ function OfferDetails({ offer, open, onOpenChange }: OfferDetailsProps) {
 
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent
+        className="max-w-2xl"
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -71,7 +74,9 @@ function OfferDetails({ offer, open, onOpenChange }: OfferDetailsProps) {
                 Offer ID: {offerId.toString()}
               </DialogDescription>
             </div>
-            {isOwner && <Badge variant="secondary">Your Offer</Badge>}
+            <div className="flex items-center gap-2">
+              {isOwner && <Badge variant="secondary">Your Offer</Badge>}
+            </div>
           </div>
         </DialogHeader>
         <div className="space-y-6">
@@ -171,41 +176,48 @@ function OfferCard({ offer, onClick }: OfferCardProps) {
       onClick={onClick}
     >
       <CardContent className="p-4">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <Badge variant={isOwner ? "secondary" : "outline"}>
-                {isOwner
-                  ? "Your Offer"
-                  : `Offer #${offer.account.data.id.toString()}`}
-              </Badge>
-            </div>
-            <div className="flex items-center gap-4 text-sm">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <Badge
+              className="text-xs"
+              variant={isOwner ? "secondary" : "outline"}
+            >
+              {isOwner
+                ? "Your Offer"
+                : `Offer #${offer.account.data.id.toString()}`}
+            </Badge>
+            <Button className="h-8 text-xs" size="sm" variant="ghost">
+              View Details
+            </Button>
+          </div>
+
+          <div className="space-y-2">
+            <div className="text-center">
               <div className="text-green-600">
-                <span className="font-semibold">
+                <div className="font-semibold text-lg">
                   {formatAmount(offer.account.data.offeredAmount)}
-                </span>
-                <span className="ml-1 text-muted-foreground">
-                  {ellipsify(offer.account.data.offeredMint.toString(), 6)}
-                </span>
+                </div>
+                <div className="text-muted-foreground text-xs">
+                  {ellipsify(offer.account.data.offeredMint.toString(), 8)}
+                </div>
               </div>
-              <span className="text-muted-foreground">→</span>
+
+              <div className="my-1 text-muted-foreground text-sm">↓</div>
+
               <div className="text-blue-600">
-                <span className="font-semibold">
+                <div className="font-semibold text-lg">
                   {formatAmount(offer.account.data.requestedAmount)}
-                </span>
-                <span className="ml-1 text-muted-foreground">
-                  {ellipsify(offer.account.data.requestedMint.toString(), 6)}
-                </span>
+                </div>
+                <div className="text-muted-foreground text-xs">
+                  {ellipsify(offer.account.data.requestedMint.toString(), 8)}
+                </div>
               </div>
             </div>
-            <div className="text-muted-foreground text-xs">
-              Maker: {ellipsify(offer.account.data.maker.toString())}
+
+            <div className="border-t pt-2 text-center text-muted-foreground text-xs">
+              Maker: {ellipsify(offer.account.data.maker.toString(), 8)}
             </div>
           </div>
-          <Button size="sm" variant="ghost">
-            View Details
-          </Button>
         </div>
       </CardContent>
     </Card>
@@ -309,7 +321,7 @@ export function OfferListing() {
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {allOffers.map((offer) => (
           <OfferCard
             key={offer.pubkey.toString()}

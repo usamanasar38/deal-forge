@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { address } from "gill";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -27,8 +26,16 @@ import { useMakeOfferMutation } from "./dealforge-data-access";
 const offerFormSchema = z.object({
   offeredMint: z.string().min(1, "Offered token mint is required"),
   requestedMint: z.string().min(1, "Requested token mint is required"),
-  offeredAmount: z.string().min(1, "Offered amount is required"),
-  requestedAmount: z.string().min(1, "Requested amount is required"),
+  offeredAmount: z
+    .string()
+    .min(1, "Offered amount is required")
+    .transform((val) => Number.parseFloat(val))
+    .pipe(z.number().gt(0, "Offered amount should be greater than 0")),
+  requestedAmount: z
+    .string()
+    .min(1, "Requested amount is required")
+    .transform((val) => Number.parseFloat(val))
+    .pipe(z.number().gt(0, "Requested amount should be greater than 0")),
 });
 
 type OfferFormData = z.infer<typeof offerFormSchema>;
@@ -38,8 +45,8 @@ interface OfferFormProps {
 }
 
 export function OfferForm({ onSuccess }: OfferFormProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const makeOfferMutation = useMakeOfferMutation();
+  const { mutate: makeOfferMutation, isPending: isLoading } =
+    useMakeOfferMutation();
 
   const form = useForm<OfferFormData>({
     resolver: zodResolver(offerFormSchema),
@@ -51,10 +58,8 @@ export function OfferForm({ onSuccess }: OfferFormProps) {
     },
   });
 
-  const onSubmit = async (data: OfferFormData) => {
+  const onSubmit = (data: OfferFormData) => {
     try {
-      setIsSubmitting(true);
-
       // Generate a random offer ID
       const offerId = BigInt(Math.floor(Math.random() * 1_000_000_000_000));
 
@@ -63,34 +68,29 @@ export function OfferForm({ onSuccess }: OfferFormProps) {
       const requestedMint = address(data.requestedMint);
 
       // Convert amounts to bigint (assuming 9 decimals)
-      const DECIMALS = 1_000_000_000n;
-      const offeredAmount = BigInt(
-        Math.floor(Number.parseFloat(data.offeredAmount) * Number(DECIMALS))
-      );
-      const requestedAmount = BigInt(
-        Math.floor(Number.parseFloat(data.requestedAmount) * Number(DECIMALS))
-      );
+      const offeredAmount = data.offeredAmount;
+      const requestedAmount = data.requestedAmount;
 
-      await makeOfferMutation.mutateAsync({
-        offerId,
-        offeredMint,
-        requestedMint,
-        offeredAmount,
-        requestedAmount,
-      });
-
-      // Reset form on success
-      form.reset();
-      onSuccess?.();
+      makeOfferMutation(
+        {
+          offerId,
+          offeredMint,
+          requestedMint,
+          offeredAmount,
+          requestedAmount,
+        },
+        {
+          onSuccess: () => {
+            // Reset form on success
+            form.reset();
+            onSuccess?.();
+          },
+        }
+      );
     } catch (error) {
       console.error("Error creating offer:", error);
-    } finally {
-      setIsSubmitting(false);
     }
   };
-
-  const isLoading = isSubmitting || makeOfferMutation.isPending;
-
   return (
     <Card className="mx-auto w-full max-w-md">
       <CardHeader>
