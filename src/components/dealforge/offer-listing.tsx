@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
   useOfferQuery,
+  useOffersQuery,
   useRefundOfferMutation,
   useTakeOfferMutation,
 } from "./dealforge-data-access";
@@ -27,6 +28,7 @@ interface OfferSearchProps {
 }
 
 function OfferSearch({ onOfferFound }: OfferSearchProps) {
+  useOffersQuery();
   const [makerAddress, setMakerAddress] = useState("");
   const [offerId, setOfferId] = useState("");
   const [isSearching, setIsSearching] = useState(false);

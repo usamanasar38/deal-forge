@@ -5,7 +5,6 @@ import {
   IconHeartHandshake,
   IconHelp,
   IconPlus,
-  IconSearch,
   IconSettings,
   IconUser,
 } from "@tabler/icons-react";

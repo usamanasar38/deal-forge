@@ -1,12 +1,20 @@
 import {
+  fetchAllOffer,
   fetchOffer,
   getDealforgeProgramId,
   getMakeOfferInstructionAsync,
   getRefundOfferInstructionAsync,
   getTakeOfferInstructionAsync,
+  OFFER_DISCRIMINATOR,
+  type Offer,
   SEEDS,
 } from "@project/anchor";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { type SolanaCluster, useWalletUi } from "@wallet-ui/react";
 import {
   type Address,
@@ -16,6 +24,8 @@ import {
   getU64Encoder,
   getUtf8Encoder,
   type ProgramDerivedAddress,
+  type Rpc,
+  type SolanaRpcApi,
 } from "gill";
 import {
   getAssociatedTokenAccountAddress,
@@ -74,12 +84,77 @@ export function getVaultAddress(
   );
 }
 
+export async function fetchOffersPage(
+  rpc: Rpc<SolanaRpcApi>,
+  programId: Address,
+  limit = 10,
+  before?: Address
+) {
+  // Fetch raw accounts with discriminator filter
+  const accounts = await rpc
+    .getProgramAccounts(programId, {
+      encoding: "base64",
+      filters: [
+        {
+          memcmp: {
+            offset: 0n,
+            encode: "base64",
+            bytes: Buffer.from(OFFER_DISCRIMINATOR).toString("base64"),
+          },
+        },
+      ],
+      limit,
+      before,
+    })
+    .send();
+
+  // Extract pubkeys
+  const pubkeys = (accounts as unknown as { pubkey: Address }[]).map(
+    (account) => account.pubkey
+  );
+
+  // Decode with Gill SDK
+  const decoded = await fetchAllOffer(rpc, pubkeys);
+
+  return decoded.map((offer, i) => ({
+    pubkey: pubkeys[i],
+    account: offer,
+  }));
+}
+
+const PAGE_SIZE = 20;
+
+export function useOffersPaginated() {
+  const { client, cluster } = useWalletUi();
+  const programId = useDealforgeProgramId();
+
+  return useInfiniteQuery({
+    queryKey: ["all-offers", { cluster: cluster.id }],
+    queryFn: async ({ pageParam }) => {
+      // pageParam is the "before" cursor
+      const results = await fetchOffersPage(
+        client.rpc,
+        programId,
+        PAGE_SIZE,
+        pageParam
+      );
+      return results;
+    },
+    getNextPageParam: (lastPage) => {
+      if (!lastPage.length) return;
+      // last pubkey is the cursor
+      return lastPage.at(-1)?.pubkey;
+    },
+    initialPageParam: undefined as Address | undefined,
+  });
+}
+
 // Hook to fetch a specific offer
 export function useOfferQuery(maker: Address | null, offerId: bigint | null) {
   const { client, cluster } = useWalletUi();
 
   return useQuery({
-    queryKey: ["offer", maker?.toString(), offerId?.toString()],
+    queryKey: ["offer", { maker, offerId }, { cluster: cluster.id }],
     queryFn: async () => {
       if (!maker || offerId === null) return null;
       const [offerAddress] = await getOfferPDA({ cluster, maker, offerId });
@@ -89,11 +164,12 @@ export function useOfferQuery(maker: Address | null, offerId: bigint | null) {
   });
 }
 
-// Hook for making offers
+// Hook to make an offer
 export function useMakeOfferMutation() {
-  const { cluster } = useWalletUi();
   const txSigner = useWalletUiSigner();
   const signAndSend = useWalletTransactionSignAndSend();
+  const queryClient = useQueryClient();
+  const { cluster } = useWalletUi();
 
   return useMutation({
     mutationFn: async ({
@@ -109,31 +185,17 @@ export function useMakeOfferMutation() {
       offeredAmount: bigint;
       requestedAmount: bigint;
     }) => {
-      if (!txSigner) throw new Error("Wallet not connected");
-
-      const [offer] = await getOfferPDA({
-        cluster,
-        maker: txSigner.address,
-        offerId,
-      });
-      const vault = await getVaultAddress(offeredMint, offer);
-      const makerOfferedAta = await getAssociatedTokenAccountAddress(
-        offeredMint,
-        txSigner.address,
-        TOKEN_2022_PROGRAM_ADDRESS
-      );
+      if (!txSigner.address) {
+        throw new Error("Wallet not connected");
+      }
 
       const instruction = await getMakeOfferInstructionAsync({
         id: offerId,
-        maker: txSigner,
         offeredMint,
-        requestedMint,
-        makerOfferedAta,
-        offer,
-        vault,
         offeredAmount,
+        requestedMint,
         requestedAmount,
-        tokenProgram: TOKEN_2022_PROGRAM_ADDRESS,
+        maker: txSigner,
       });
 
       return await signAndSend(instruction, txSigner);
@@ -141,6 +203,10 @@ export function useMakeOfferMutation() {
     onSuccess: (signature) => {
       toast.success("Offer created successfully!");
       toastTx(signature);
+      // Invalidate and refetch offers query
+      queryClient.invalidateQueries({
+        queryKey: ["all-offers", { cluster: cluster.id }],
+      });
     },
     onError: (error) => {
       const message =
@@ -152,32 +218,28 @@ export function useMakeOfferMutation() {
 
 // Hook for taking offers
 export function useTakeOfferMutation() {
-  const { cluster } = useWalletUi();
   const txSigner = useWalletUiSigner();
+  const { cluster } = useWalletUi();
   const signAndSend = useWalletTransactionSignAndSend();
 
   return useMutation({
     mutationFn: async ({
-      maker,
-      offerId,
+      offer,
       offeredMint,
       requestedMint,
     }: {
-      maker: Address;
-      offerId: bigint;
+      offer: Offer;
       offeredMint: Address;
       requestedMint: Address;
     }) => {
       if (!txSigner) throw new Error("Wallet not connected");
 
-      const [offer] = await getOfferPDA({ cluster, maker, offerId });
-      const vault = await getVaultAddress(offeredMint, offer);
+      const [offerPda] = await getOfferPDA({
+        cluster,
+        maker: offer.maker,
+        offerId: offer.id,
+      });
 
-      const makerRequestedAta = await getAssociatedTokenAccountAddress(
-        requestedMint,
-        maker,
-        TOKEN_2022_PROGRAM_ADDRESS
-      );
       const takerOfferedAta = await getAssociatedTokenAccountAddress(
         requestedMint,
         txSigner.address,
@@ -190,15 +252,13 @@ export function useTakeOfferMutation() {
       );
 
       const instruction = await getTakeOfferInstructionAsync({
-        maker,
+        maker: offer.maker,
         taker: txSigner,
-        offeredMint,
-        requestedMint,
-        makerRequestedAta,
+        offeredMint: offer.offeredMint,
+        requestedMint: offer.requestedMint,
         takerOfferedAta,
         takerRequestedAta,
-        offer,
-        vault,
+        offer: offerPda,
         tokenProgram: TOKEN_2022_PROGRAM_ADDRESS,
       });
 
@@ -237,20 +297,11 @@ export function useRefundOfferMutation() {
         maker: txSigner.address,
         offerId,
       });
-      const vault = await getVaultAddress(offeredMint, offer);
-      const makerOfferedAta = await getAssociatedTokenAccountAddress(
-        offeredMint,
-        txSigner.address,
-        TOKEN_2022_PROGRAM_ADDRESS
-      );
 
       const instruction = await getRefundOfferInstructionAsync({
         maker: txSigner,
         offeredMint,
-        makerOfferedAta,
         offer,
-        vault,
-        tokenProgram: TOKEN_2022_PROGRAM_ADDRESS,
       });
 
       return await signAndSend(instruction, txSigner);
