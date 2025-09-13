@@ -2,7 +2,7 @@
 
 import type { Offer } from "@project/anchor";
 import { ellipsify, useWalletUi } from "@wallet-ui/react";
-import { type Address, address } from "gill";
+import type { Account, Address } from "gill";
 import { useState } from "react";
 import { ExplorerLink } from "@/components/cluster/cluster-ui";
 import { Badge } from "@/components/ui/badge";
@@ -14,8 +14,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
   useOfferQuery,
@@ -23,70 +21,6 @@ import {
   useRefundOfferMutation,
   useTakeOfferMutation,
 } from "./dealforge-data-access";
-
-interface OfferSearchProps {
-  readonly onOfferFound?: (maker: Address, offerId: bigint) => void;
-}
-
-function OfferSearch({ onOfferFound }: OfferSearchProps) {
-  const [makerAddress, setMakerAddress] = useState("");
-  const [offerId, setOfferId] = useState("");
-  const [isSearching, setIsSearching] = useState(false);
-
-  const handleSearch = () => {
-    if (!(makerAddress && offerId)) return;
-
-    try {
-      setIsSearching(true);
-      const maker = address(makerAddress);
-      const id = BigInt(offerId);
-      onOfferFound?.(maker, id);
-    } catch (error) {
-      console.error("Invalid input:", error);
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  return (
-    <Card className="mx-auto w-full max-w-md">
-      <CardHeader>
-        <CardTitle>Search Specific Offer</CardTitle>
-        <CardDescription>
-          Enter maker address and offer ID to view a specific offer
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <Label htmlFor="maker">Maker Address</Label>
-          <Input
-            id="maker"
-            onChange={(e) => setMakerAddress(e.target.value)}
-            placeholder="Enter maker wallet address"
-            value={makerAddress}
-          />
-        </div>
-        <div>
-          <Label htmlFor="offerId">Offer ID</Label>
-          <Input
-            id="offerId"
-            onChange={(e) => setOfferId(e.target.value)}
-            placeholder="Enter offer ID"
-            type="number"
-            value={offerId}
-          />
-        </div>
-        <Button
-          className="w-full"
-          disabled={!(makerAddress && offerId) || isSearching}
-          onClick={handleSearch}
-        >
-          {isSearching ? "Searching..." : "Search Offer"}
-        </Button>
-      </CardContent>
-    </Card>
-  );
-}
 
 interface OfferDetailsProps {
   readonly maker: Address;
@@ -113,8 +47,8 @@ function OfferDetails({ maker, offerId, onClose }: OfferDetailsProps) {
 
     await takeOfferMutation.mutateAsync({
       offer,
-      offeredMint: offer.offeredMint,
-      requestedMint: offer.requestedMint,
+      offeredMint: offer.data.offeredMint,
+      requestedMint: offer.data.requestedMint,
     });
   };
 
@@ -123,7 +57,7 @@ function OfferDetails({ maker, offerId, onClose }: OfferDetailsProps) {
 
     await refundOfferMutation.mutateAsync({
       offerId,
-      offeredMint: offer.offeredMint,
+      offeredMint: offer.data.offeredMint,
     });
   };
 
@@ -146,7 +80,7 @@ function OfferDetails({ maker, offerId, onClose }: OfferDetailsProps) {
           </div>
           {onClose && (
             <Button className="mt-4" onClick={onClose} variant="outline">
-              Back to Search
+              Back to List
             </Button>
           )}
         </CardContent>
@@ -161,7 +95,7 @@ function OfferDetails({ maker, offerId, onClose }: OfferDetailsProps) {
           <div className="text-center">Offer not found</div>
           {onClose && (
             <Button className="mt-4" onClick={onClose} variant="outline">
-              Back to Search
+              Back to List
             </Button>
           )}
         </CardContent>
@@ -187,12 +121,12 @@ function OfferDetails({ maker, offerId, onClose }: OfferDetailsProps) {
             <h3 className="font-semibold text-green-600">Offering</h3>
             <div className="space-y-1">
               <div className="font-bold text-2xl">
-                {formatAmount(offer.offeredAmount)}
+                {formatAmount(offer.data.offeredAmount)}
               </div>
               <div className="text-gray-500 text-sm">
                 <ExplorerLink
-                  address={offer.offeredMint.toString()}
-                  label={ellipsify(offer.offeredMint.toString())}
+                  address={offer.data.offeredMint.toString()}
+                  label={ellipsify(offer.data.offeredMint.toString())}
                 />
               </div>
             </div>
@@ -203,12 +137,12 @@ function OfferDetails({ maker, offerId, onClose }: OfferDetailsProps) {
             <h3 className="font-semibold text-blue-600">Requesting</h3>
             <div className="space-y-1">
               <div className="font-bold text-2xl">
-                {formatAmount(offer.requestedAmount)}
+                {formatAmount(offer.data.requestedAmount)}
               </div>
               <div className="text-gray-500 text-sm">
                 <ExplorerLink
-                  address={offer.requestedMint.toString()}
-                  label={ellipsify(offer.requestedMint.toString())}
+                  address={offer.data.requestedMint.toString()}
+                  label={ellipsify(offer.data.requestedMint.toString())}
                 />
               </div>
             </div>
@@ -221,8 +155,8 @@ function OfferDetails({ maker, offerId, onClose }: OfferDetailsProps) {
         <div className="space-y-2">
           <h3 className="font-semibold">Maker</h3>
           <ExplorerLink
-            address={offer.maker.toString()}
-            label={ellipsify(offer.maker.toString())}
+            address={offer.data.maker.toString()}
+            label={ellipsify(offer.data.maker.toString())}
           />
         </div>
 
@@ -232,7 +166,7 @@ function OfferDetails({ maker, offerId, onClose }: OfferDetailsProps) {
         <div className="flex gap-3">
           {onClose && (
             <Button onClick={onClose} variant="outline">
-              Back to Search
+              Back to List
             </Button>
           )}
 
@@ -259,13 +193,13 @@ function OfferDetails({ maker, offerId, onClose }: OfferDetailsProps) {
 }
 
 interface OfferCardProps {
-  readonly offer: { pubkey: Address; account: Offer };
+  readonly offer: { pubkey: Address; account: Account<Offer> };
   readonly onClick: () => void;
 }
 
 function OfferCard({ offer, onClick }: OfferCardProps) {
   const { account } = useWalletUi();
-  const isOwner = account?.address === offer.account.maker;
+  const isOwner = account?.address === offer.account.data.maker;
 
   const formatAmount = (amount: bigint) => {
     const DECIMALS = 1_000_000_000n;
@@ -284,30 +218,30 @@ function OfferCard({ offer, onClick }: OfferCardProps) {
               <Badge variant={isOwner ? "secondary" : "outline"}>
                 {isOwner
                   ? "Your Offer"
-                  : `Offer #${offer.account.id.toString()}`}
+                  : `Offer #${offer.account.data.id.toString()}`}
               </Badge>
             </div>
             <div className="flex items-center gap-4 text-sm">
               <div className="text-green-600">
                 <span className="font-semibold">
-                  {formatAmount(offer.account.offeredAmount)}
+                  {formatAmount(offer.account.data.offeredAmount)}
                 </span>
                 <span className="ml-1 text-muted-foreground">
-                  {ellipsify(offer.account.offeredMint.toString(), 6)}
+                  {ellipsify(offer.account.data.offeredMint.toString(), 6)}
                 </span>
               </div>
               <span className="text-muted-foreground">→</span>
               <div className="text-blue-600">
                 <span className="font-semibold">
-                  {formatAmount(offer.account.requestedAmount)}
+                  {formatAmount(offer.account.data.requestedAmount)}
                 </span>
                 <span className="ml-1 text-muted-foreground">
-                  {ellipsify(offer.account.requestedMint.toString(), 6)}
+                  {ellipsify(offer.account.data.requestedMint.toString(), 6)}
                 </span>
               </div>
             </div>
             <div className="text-muted-foreground text-xs">
-              Maker: {ellipsify(offer.account.maker.toString())}
+              Maker: {ellipsify(offer.account.data.maker.toString())}
             </div>
           </div>
           <Button size="sm" variant="ghost">
@@ -319,7 +253,7 @@ function OfferCard({ offer, onClick }: OfferCardProps) {
   );
 }
 
-function AllOffersList() {
+export function OfferListing() {
   const {
     data,
     error,
@@ -424,58 +358,6 @@ function AllOffersList() {
         <div className="flex justify-center">
           <div className="text-muted-foreground text-sm">Refreshing...</div>
         </div>
-      )}
-    </div>
-  );
-}
-
-export function OfferListing() {
-  const [view, setView] = useState<"all" | "search">("all");
-  const [searchParams, setSearchParams] = useState<{
-    maker: Address;
-    offerId: bigint;
-  } | null>(null);
-
-  const handleOfferFound = (maker: Address, offerId: bigint) => {
-    setSearchParams({ maker, offerId });
-  };
-
-  const handleBackToList = () => {
-    setSearchParams(null);
-    setView("all");
-  };
-
-  if (searchParams) {
-    return (
-      <OfferDetails
-        maker={searchParams.maker}
-        offerId={searchParams.offerId}
-        onClose={handleBackToList}
-      />
-    );
-  }
-
-  return (
-    <div className="space-y-6">
-      <div className="flex gap-2">
-        <Button
-          onClick={() => setView("all")}
-          variant={view === "all" ? "default" : "outline"}
-        >
-          All Offers
-        </Button>
-        <Button
-          onClick={() => setView("search")}
-          variant={view === "search" ? "default" : "outline"}
-        >
-          Search Specific Offer
-        </Button>
-      </div>
-
-      {view === "all" ? (
-        <AllOffersList />
-      ) : (
-        <OfferSearch onOfferFound={handleOfferFound} />
       )}
     </div>
   );

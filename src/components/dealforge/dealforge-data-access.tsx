@@ -17,6 +17,7 @@ import {
 } from "@tanstack/react-query";
 import { type SolanaCluster, useWalletUi } from "@wallet-ui/react";
 import {
+  type Account,
   type Address,
   getAddressEncoder,
   getBytesEncoder,
@@ -217,7 +218,6 @@ export function useMakeOfferMutation() {
 // Hook for taking offers
 export function useTakeOfferMutation() {
   const txSigner = useWalletUiSigner();
-  const { cluster } = useWalletUi();
   const signAndSend = useWalletTransactionSignAndSend();
 
   return useMutation({
@@ -226,17 +226,17 @@ export function useTakeOfferMutation() {
       offeredMint,
       requestedMint,
     }: {
-      offer: Offer;
+      offer: Account<Offer, string>;
       offeredMint: Address;
       requestedMint: Address;
     }) => {
       if (!txSigner) throw new Error("Wallet not connected");
 
-      const [offerPda] = await getOfferPDA({
-        cluster,
-        maker: offer.maker,
-        offerId: offer.id,
-      });
+      // const [offerPda] = await getOfferPDA({
+      //   cluster,
+      //   maker: offer.data.maker,
+      //   offerId: offer.data.id,
+      // });
 
       const takerOfferedAta = await getAssociatedTokenAccountAddress(
         requestedMint,
@@ -250,13 +250,13 @@ export function useTakeOfferMutation() {
       );
 
       const instruction = await getTakeOfferInstructionAsync({
-        maker: offer.maker,
+        maker: offer.data.maker,
         taker: txSigner,
-        offeredMint: offer.offeredMint,
-        requestedMint: offer.requestedMint,
+        offeredMint: offer.data.offeredMint,
+        requestedMint: offer.data.requestedMint,
         takerOfferedAta,
         takerRequestedAta,
-        offer: offerPda,
+        offer: offer.address,
         tokenProgram: TOKEN_2022_PROGRAM_ADDRESS,
       });
 
