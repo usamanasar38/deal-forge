@@ -1,9 +1,9 @@
 "use client";
 
-import type { Offer } from "@project/anchor";
+import { OFFER_DISCRIMINATOR, type Offer } from "@project/anchor";
 import { ellipsify, useWalletUi } from "@wallet-ui/react";
-import type { Account, Address } from "gill";
-import { useState } from "react";
+import type { Account, Address, Base64EncodedBytes } from "gill";
+import { useMemo, useState } from "react";
 import { ExplorerLink } from "@/components/cluster/cluster-ui";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,8 +16,10 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {
+  useDealforgeProgramId,
   useOfferQuery,
   useOffersPaginated,
+  useProgramAccounts,
   useRefundOfferMutation,
   useTakeOfferMutation,
 } from "./dealforge-data-access";
@@ -254,15 +256,41 @@ function OfferCard({ offer, onClick }: OfferCardProps) {
 }
 
 export function OfferListing() {
+  const programId = useDealforgeProgramId();
+  const { accounts, isLoading: addressesLoading } = useProgramAccounts({
+    program: programId,
+    config: {
+      dataSlice: { offset: 0, length: 0 },
+      filters: [
+        {
+          memcmp: {
+            offset: 0n,
+            encoding: "base64",
+            bytes: Array.from(
+              OFFER_DISCRIMINATOR
+            ) as unknown as Base64EncodedBytes,
+          },
+        },
+      ],
+    },
+  });
+
+  const accountsAddress = useMemo(
+    () => accounts?.map((a) => a.pubkey) ?? [],
+    [accounts]
+  );
+
   const {
     data,
     error,
     fetchNextPage,
     hasNextPage,
-    isFetching,
+    isFetching: isOfferFetching,
     isFetchingNextPage,
     isLoading,
-  } = useOffersPaginated();
+  } = useOffersPaginated(accountsAddress);
+
+  const isFetching = isOfferFetching || addressesLoading;
 
   const [selectedOffer, setSelectedOffer] = useState<{
     maker: Address;
@@ -271,10 +299,13 @@ export function OfferListing() {
 
   const allOffers = data?.pages.flat() || [];
 
-  const handleOfferClick = (offer: { pubkey: Address; account: Offer }) => {
+  const handleOfferClick = (offer: {
+    pubkey: Address;
+    account: Account<Offer>;
+  }) => {
     setSelectedOffer({
-      maker: offer.account.maker,
-      offerId: offer.account.id,
+      maker: offer.account.data.maker,
+      offerId: offer.account.data.id,
     });
   };
 

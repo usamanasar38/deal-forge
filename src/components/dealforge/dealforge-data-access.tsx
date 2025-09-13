@@ -5,7 +5,6 @@ import {
   getMakeOfferInstructionAsync,
   getRefundOfferInstructionAsync,
   getTakeOfferInstructionAsync,
-  OFFER_DISCRIMINATOR,
   type Offer,
   SEEDS,
 } from "@project/anchor";
@@ -19,19 +18,24 @@ import { type SolanaCluster, useWalletUi } from "@wallet-ui/react";
 import {
   type Account,
   type Address,
+  type Base58EncodedBytes,
+  type GetProgramAccountsApi,
   getAddressEncoder,
   getBytesEncoder,
   getProgramDerivedAddress,
   getU64Encoder,
   getUtf8Encoder,
+  type Lamports,
   type ProgramDerivedAddress,
   type Rpc,
+  type Simplify,
   type SolanaRpcApi,
 } from "gill";
 import {
   getAssociatedTokenAccountAddress,
   TOKEN_2022_PROGRAM_ADDRESS,
 } from "gill/programs";
+import type { GillUseRpcHook } from "node_modules/@gillsdk/react/dist/hooks/types";
 import { useMemo } from "react";
 import { toast } from "sonner";
 import { useWalletTransactionSignAndSend } from "@/components/solana/use-wallet-transaction-sign-and-send";
@@ -85,66 +89,100 @@ export function getVaultAddress(
   );
 }
 
+/** TODO: Refactor */
+type Encoding = "base64" | "jsonParsed" | "base64+zstd";
+
+type RpcConfig = Simplify<
+  Parameters<GetProgramAccountsApi["getProgramAccounts"]>[1] &
+    Readonly<{
+      encoding?: Encoding;
+    }>
+>;
+
+type UseProgramAccountsInput<TConfig extends RpcConfig = RpcConfig> =
+  GillUseRpcHook<TConfig> & {
+    /**
+     * Address of the program used to call
+     * [`getProgramAccounts`](https://solana.com/docs/rpc/http/getprogramaccounts)
+     */
+    program: Address | string;
+  };
+
+export function useProgramAccounts<TConfig extends RpcConfig = RpcConfig>({
+  config,
+  abortSignal,
+  program,
+}: UseProgramAccountsInput<TConfig>) {
+  const { client } = useWalletUi();
+
+  const { data, ...rest } = useQuery({
+    enabled: !!program,
+    queryKey: ["all-offers", "getProgramAccounts", program],
+    queryFn: async () =>
+      client.rpc
+        .getProgramAccounts(program as Address, config)
+        .send({ abortSignal }),
+  });
+
+  return {
+    ...rest,
+    accounts: data as
+      | Readonly<{
+          account: Readonly<{
+            executable: boolean;
+            lamports: Lamports;
+            owner: Address;
+            rentEpoch: bigint;
+            space: bigint;
+          }> &
+            Readonly<{
+              data: Base58EncodedBytes;
+            }>;
+          pubkey: Address;
+        }>[]
+      | undefined,
+  };
+}
+
+/** TODO: Refactor */
+
+const PAGE_SIZE = 20;
+
 export async function fetchOffersPage(
   rpc: Rpc<SolanaRpcApi>,
-  programId: Address,
-  limit = 10,
-  before?: Address
+  addresses: Address[],
+  pageParam = 0
 ) {
-  // Fetch raw accounts with discriminator filter
-  const accounts = await rpc
-    .getProgramAccounts(programId, {
-      filters: [
-        {
-          memcmp: {
-            offset: 0n,
-            bytes: Array.from(OFFER_DISCRIMINATOR),
-          },
-        },
-      ],
-      limit,
-      before,
-    })
-    .send();
+  // Calculate slice boundaries
+  const start = pageParam * PAGE_SIZE;
+  const end = start + PAGE_SIZE;
 
-  // Extract pubkeys
-  const pubkeys = (accounts as unknown as { pubkey: Address }[]).map(
-    (account) => account.pubkey
-  );
-
+  // Get the subset of addresses for this page
+  const pageAddresses = addresses.slice(start, end);
   // Decode with Gill SDK
-  const decoded = await fetchAllOffer(rpc, pubkeys);
+  const decoded = await fetchAllOffer(rpc, pageAddresses ?? []);
 
   return decoded.map((offer, i) => ({
-    pubkey: pubkeys[i],
+    pubkey: pageAddresses[i],
     account: offer,
   }));
 }
 
-const PAGE_SIZE = 20;
-
-export function useOffersPaginated() {
+export function useOffersPaginated(addresses: Address[]) {
   const { client, cluster } = useWalletUi();
-  const programId = useDealforgeProgramId();
 
   return useInfiniteQuery({
-    queryKey: ["all-offers", { cluster: cluster.id }],
+    queryKey: ["all-offers", ...addresses, { cluster: cluster.id }],
     queryFn: async ({ pageParam }) => {
       // pageParam is the "before" cursor
-      const results = await fetchOffersPage(
-        client.rpc,
-        programId,
-        PAGE_SIZE,
-        pageParam
-      );
+      const results = await fetchOffersPage(client.rpc, addresses, pageParam);
       return results;
     },
-    getNextPageParam: (lastPage) => {
-      if (!lastPage.length) return;
-      // last pubkey is the cursor
-      return lastPage.at(-1)?.pubkey;
+    getNextPageParam: (_lastPage, allPages) => {
+      const loadedCount = allPages.flat().length;
+      return loadedCount < addresses.length ? allPages.length : undefined;
     },
-    initialPageParam: undefined as Address | undefined,
+    initialPageParam: 0,
   });
 }
 
@@ -219,6 +257,8 @@ export function useMakeOfferMutation() {
 export function useTakeOfferMutation() {
   const txSigner = useWalletUiSigner();
   const signAndSend = useWalletTransactionSignAndSend();
+  const { cluster } = useWalletUi();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({
@@ -265,6 +305,9 @@ export function useTakeOfferMutation() {
     onSuccess: (signature) => {
       toast.success("Offer taken successfully!");
       toastTx(signature);
+      queryClient.invalidateQueries({
+        queryKey: ["all-offers", { cluster: cluster.id }],
+      });
     },
     onError: (error) => {
       const message =
@@ -279,6 +322,7 @@ export function useRefundOfferMutation() {
   const { cluster } = useWalletUi();
   const txSigner = useWalletUiSigner();
   const signAndSend = useWalletTransactionSignAndSend();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({
@@ -307,6 +351,9 @@ export function useRefundOfferMutation() {
     onSuccess: (signature) => {
       toast.success("Offer refunded successfully!");
       toastTx(signature);
+      queryClient.invalidateQueries({
+        queryKey: ["all-offers", { cluster: cluster.id }],
+      });
     },
     onError: (error) => {
       const message =
