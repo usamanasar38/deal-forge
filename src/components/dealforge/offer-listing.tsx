@@ -7,17 +7,17 @@ import { useMemo, useState } from "react";
 import { ExplorerLink } from "@/components/cluster/cluster-ui";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import {
   useDealforgeProgramId,
-  useOfferQuery,
   useOffersPaginated,
   useProgramAccounts,
   useRefundOfferMutation,
@@ -25,19 +25,18 @@ import {
 } from "./dealforge-data-access";
 
 interface OfferDetailsProps {
-  readonly maker: Address;
-  readonly offerId: bigint;
-  readonly onClose?: () => void;
+  readonly offer: { pubkey: Address; account: Account<Offer> };
+  readonly open: boolean;
+  readonly onOpenChange: (open: boolean) => void;
 }
 
-function OfferDetails({ maker, offerId, onClose }: OfferDetailsProps) {
+function OfferDetails({ offer, open, onOpenChange }: OfferDetailsProps) {
   const { account } = useWalletUi();
-  const offerQuery = useOfferQuery(maker, offerId);
   const takeOfferMutation = useTakeOfferMutation();
   const refundOfferMutation = useRefundOfferMutation();
 
-  const isOwner = account?.address === maker;
-  const offer = offerQuery.data;
+  const isOwner = account?.address === offer.account.data.maker;
+  const offerId = offer.account.data.id;
 
   const formatAmount = (amount: bigint) => {
     const DECIMALS = 1_000_000_000n;
@@ -45,152 +44,110 @@ function OfferDetails({ maker, offerId, onClose }: OfferDetailsProps) {
   };
 
   const handleTakeOffer = async () => {
-    if (!offer) return;
-
     await takeOfferMutation.mutateAsync({
-      offer,
-      offeredMint: offer.data.offeredMint,
-      requestedMint: offer.data.requestedMint,
+      offer: offer.account,
+      offeredMint: offer.account.data.offeredMint,
+      requestedMint: offer.account.data.requestedMint,
     });
+    onOpenChange(false);
   };
 
   const handleRefundOffer = async () => {
-    if (!offer) return;
-
     await refundOfferMutation.mutateAsync({
       offerId,
-      offeredMint: offer.data.offeredMint,
+      offeredMint: offer.account.data.offeredMint,
     });
+    onOpenChange(false);
   };
 
-  if (offerQuery.isLoading) {
-    return (
-      <Card className="mx-auto w-full max-w-2xl">
-        <CardContent className="p-6">
-          <div className="text-center">Loading offer...</div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (offerQuery.error) {
-    return (
-      <Card className="mx-auto w-full max-w-2xl">
-        <CardContent className="p-6">
-          <div className="text-center text-red-500">
-            Error loading offer. It may not exist or have been closed.
-          </div>
-          {onClose && (
-            <Button className="mt-4" onClick={onClose} variant="outline">
-              Back to List
-            </Button>
-          )}
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (!offer) {
-    return (
-      <Card className="mx-auto w-full max-w-2xl">
-        <CardContent className="p-6">
-          <div className="text-center">Offer not found</div>
-          {onClose && (
-            <Button className="mt-4" onClick={onClose} variant="outline">
-              Back to List
-            </Button>
-          )}
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
-    <Card className="mx-auto w-full max-w-2xl">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>Offer Details</CardTitle>
-            <CardDescription>Offer ID: {offerId.toString()}</CardDescription>
+    <Dialog onOpenChange={onOpenChange} open={open}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <DialogTitle>Offer Details</DialogTitle>
+              <DialogDescription>
+                Offer ID: {offerId.toString()}
+              </DialogDescription>
+            </div>
+            {isOwner && <Badge variant="secondary">Your Offer</Badge>}
           </div>
-          {isOwner && <Badge variant="secondary">Your Offer</Badge>}
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          {/* Offered Token */}
-          <div className="space-y-2">
-            <h3 className="font-semibold text-green-600">Offering</h3>
-            <div className="space-y-1">
-              <div className="font-bold text-2xl">
-                {formatAmount(offer.data.offeredAmount)}
+        </DialogHeader>
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {/* Offered Token */}
+            <div className="space-y-2">
+              <h3 className="font-semibold text-green-600">Offering</h3>
+              <div className="space-y-1">
+                <div className="font-bold text-2xl">
+                  {formatAmount(offer.account.data.offeredAmount)}
+                </div>
+                <div className="text-gray-500 text-sm">
+                  <ExplorerLink
+                    address={offer.account.data.offeredMint.toString()}
+                    label={ellipsify(offer.account.data.offeredMint.toString())}
+                  />
+                </div>
               </div>
-              <div className="text-gray-500 text-sm">
-                <ExplorerLink
-                  address={offer.data.offeredMint.toString()}
-                  label={ellipsify(offer.data.offeredMint.toString())}
-                />
+            </div>
+
+            {/* Requested Token */}
+            <div className="space-y-2">
+              <h3 className="font-semibold text-blue-600">Requesting</h3>
+              <div className="space-y-1">
+                <div className="font-bold text-2xl">
+                  {formatAmount(offer.account.data.requestedAmount)}
+                </div>
+                <div className="text-gray-500 text-sm">
+                  <ExplorerLink
+                    address={offer.account.data.requestedMint.toString()}
+                    label={ellipsify(
+                      offer.account.data.requestedMint.toString()
+                    )}
+                  />
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Requested Token */}
+          <Separator />
+
+          {/* Maker Information */}
           <div className="space-y-2">
-            <h3 className="font-semibold text-blue-600">Requesting</h3>
-            <div className="space-y-1">
-              <div className="font-bold text-2xl">
-                {formatAmount(offer.data.requestedAmount)}
-              </div>
-              <div className="text-gray-500 text-sm">
-                <ExplorerLink
-                  address={offer.data.requestedMint.toString()}
-                  label={ellipsify(offer.data.requestedMint.toString())}
-                />
-              </div>
-            </div>
+            <h3 className="font-semibold">Maker</h3>
+            <ExplorerLink
+              address={offer.account.data.maker.toString()}
+              label={ellipsify(offer.account.data.maker.toString())}
+            />
+          </div>
+
+          <Separator />
+
+          {/* Actions */}
+          <div className="flex gap-3">
+            {isOwner ? (
+              <Button
+                disabled={refundOfferMutation.isPending}
+                onClick={handleRefundOffer}
+                variant="destructive"
+              >
+                {refundOfferMutation.isPending
+                  ? "Refunding..."
+                  : "Refund Offer"}
+              </Button>
+            ) : (
+              <Button
+                disabled={takeOfferMutation.isPending}
+                onClick={handleTakeOffer}
+              >
+                {takeOfferMutation.isPending ? "Taking Offer..." : "Take Offer"}
+              </Button>
+            )}
           </div>
         </div>
-
-        <Separator />
-
-        {/* Maker Information */}
-        <div className="space-y-2">
-          <h3 className="font-semibold">Maker</h3>
-          <ExplorerLink
-            address={offer.data.maker.toString()}
-            label={ellipsify(offer.data.maker.toString())}
-          />
-        </div>
-
-        <Separator />
-
-        {/* Actions */}
-        <div className="flex gap-3">
-          {onClose && (
-            <Button onClick={onClose} variant="outline">
-              Back to List
-            </Button>
-          )}
-
-          {isOwner ? (
-            <Button
-              disabled={refundOfferMutation.isPending}
-              onClick={handleRefundOffer}
-              variant="destructive"
-            >
-              {refundOfferMutation.isPending ? "Refunding..." : "Refund Offer"}
-            </Button>
-          ) : (
-            <Button
-              disabled={takeOfferMutation.isPending}
-              onClick={handleTakeOffer}
-            >
-              {takeOfferMutation.isPending ? "Taking Offer..." : "Take Offer"}
-            </Button>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -293,9 +250,10 @@ export function OfferListing() {
   const isFetching = isOfferFetching || addressesLoading;
 
   const [selectedOffer, setSelectedOffer] = useState<{
-    maker: Address;
-    offerId: bigint;
+    pubkey: Address;
+    account: Account<Offer>;
   } | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const allOffers = data?.pages.flat() || [];
 
@@ -303,21 +261,9 @@ export function OfferListing() {
     pubkey: Address;
     account: Account<Offer>;
   }) => {
-    setSelectedOffer({
-      maker: offer.account.data.maker,
-      offerId: offer.account.data.id,
-    });
+    setSelectedOffer(offer);
+    setDialogOpen(true);
   };
-
-  if (selectedOffer) {
-    return (
-      <OfferDetails
-        maker={selectedOffer.maker}
-        offerId={selectedOffer.offerId}
-        onClose={() => setSelectedOffer(null)}
-      />
-    );
-  }
 
   if (isLoading) {
     return (
@@ -389,6 +335,14 @@ export function OfferListing() {
         <div className="flex justify-center">
           <div className="text-muted-foreground text-sm">Refreshing...</div>
         </div>
+      )}
+
+      {selectedOffer && (
+        <OfferDetails
+          offer={selectedOffer}
+          onOpenChange={setDialogOpen}
+          open={dialogOpen}
+        />
       )}
     </div>
   );

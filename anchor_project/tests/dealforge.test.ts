@@ -1,17 +1,12 @@
-import { type Address, getBase58Decoder, type KeyPairSigner } from "gill";
+import type { Address, KeyPairSigner } from "gill";
 import { loadKeypairSignerFromFile } from "gill/node";
 import { getAssociatedTokenAccountAddress } from "gill/programs";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   DEALFORGE_ERROR__INSUFFICIENT_BALANCE,
-  DEALFORGE_PROGRAM_ADDRESS,
-  decodeOffer,
-  fetchAllOffer,
   fetchOffer,
-  getDealforgeProgramId,
   getRefundOfferInstructionAsync,
   getTakeOfferInstructionAsync,
-  OFFER_DISCRIMINATOR,
 } from "../src";
 import {
   createAndConfirmTransaction,
@@ -352,42 +347,6 @@ describe("dealforge", () => {
           skipPreflight: true,
         })
       ).rejects.toThrowError(`${CUSTOM_FUNDS_ERROR_MESSAGE}2015`);
-    });
-  });
-
-  describe("can get all the offers", () => {
-    it("successfully gets all the offers", async () => {
-      const { vault, offer } = await createTestOffer({
-        maker: data.maker,
-        offeredMint: data.offeredMint,
-        requestedMint: data.requestedMint,
-        makerTokenAccount: data.makerOfferedTokenAccount,
-        tokenOfferedAmount: tokenAOfferedAmount,
-        tokenRequestedAmount: tokenBWantedAmount,
-      });
-      const offerAddresses = await rpc
-        .getProgramAccounts(DEALFORGE_PROGRAM_ADDRESS, {
-          filters: [
-            {
-              memcmp: {
-                offset: 0n,
-                bytes: getBase58Decoder().decode(OFFER_DISCRIMINATOR),
-              },
-            },
-          ],
-          encoding: "base64",
-          before: tokenMintA.address,
-        })
-        .send();
-
-      const allOffers = await fetchAllOffer(
-        rpc,
-        (offerAddresses as unknown as { pubkey: Address }[]).map(
-          (of) => of.pubkey
-        )
-      );
-
-      console.log(allOffers);
     });
   });
 });

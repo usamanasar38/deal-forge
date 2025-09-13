@@ -48,11 +48,41 @@ export function useDealforgeProgramId() {
   return useMemo(() => getDealforgeProgramId(cluster.id), [cluster]);
 }
 
+const QueryKeys = {
+  all: () => ["all"],
+  getProgramAccount: (cluster: SolanaCluster) => [
+    ...QueryKeys.all(),
+    "get-program-account",
+    { cluster },
+  ],
+  offersList: (cluster: SolanaCluster) => [
+    ...QueryKeys.all(),
+    "offers-list",
+    { cluster },
+  ],
+  offerListProgramAddresses: ({
+    cluster,
+    program,
+  }: {
+    cluster: SolanaCluster;
+    program: string | Address;
+  }) => [...QueryKeys.offersList(cluster), "program-accounts", { program }],
+  offerDetails: ({
+    cluster,
+    maker,
+    offerId,
+  }: {
+    cluster: SolanaCluster;
+    maker: Address | null;
+    offerId: number | bigint | null;
+  }) => [...QueryKeys.all(), "offer-details", { maker, offerId, cluster }],
+};
+
 export function useGetProgramAccountQuery() {
   const { client, cluster } = useWalletUi();
 
   return useQuery({
-    queryKey: ["get-program-account", { cluster }],
+    queryKey: QueryKeys.getProgramAccount(cluster),
     queryFn: () =>
       client.rpc.getAccountInfo(getDealforgeProgramId(cluster.id)).send(),
   });
@@ -113,11 +143,11 @@ export function useProgramAccounts<TConfig extends RpcConfig = RpcConfig>({
   abortSignal,
   program,
 }: UseProgramAccountsInput<TConfig>) {
-  const { client } = useWalletUi();
+  const { client, cluster } = useWalletUi();
 
   const { data, ...rest } = useQuery({
     enabled: !!program,
-    queryKey: ["all-offers", "getProgramAccounts", program],
+    queryKey: QueryKeys.offerListProgramAddresses({ cluster, program }),
     queryFn: async () =>
       client.rpc
         .getProgramAccounts(program as Address, config)
@@ -172,7 +202,7 @@ export function useOffersPaginated(addresses: Address[]) {
   const { client, cluster } = useWalletUi();
 
   return useInfiniteQuery({
-    queryKey: ["all-offers", ...addresses, { cluster: cluster.id }],
+    queryKey: QueryKeys.offersList(cluster),
     queryFn: async ({ pageParam }) => {
       // pageParam is the "before" cursor
       const results = await fetchOffersPage(client.rpc, addresses, pageParam);
@@ -191,13 +221,13 @@ export function useOfferQuery(maker: Address | null, offerId: bigint | null) {
   const { client, cluster } = useWalletUi();
 
   return useQuery({
-    queryKey: ["offer", { maker, offerId }, { cluster: cluster.id }],
+    queryKey: QueryKeys.offerDetails({ cluster, maker, offerId }),
     queryFn: async () => {
       if (!maker || offerId === null) return null;
       const [offerAddress] = await getOfferPDA({ cluster, maker, offerId });
       return fetchOffer(client.rpc, offerAddress);
     },
-    enabled: !!maker && offerId !== null,
+    enabled: !!maker && offerId !== null && offerId !== undefined,
   });
 }
 
@@ -206,7 +236,6 @@ export function useMakeOfferMutation() {
   const txSigner = useWalletUiSigner();
   const signAndSend = useWalletTransactionSignAndSend();
   const queryClient = useQueryClient();
-  const { cluster } = useWalletUi();
 
   return useMutation({
     mutationFn: async ({
@@ -242,7 +271,7 @@ export function useMakeOfferMutation() {
       toastTx(signature);
       // Invalidate and refetch offers query
       queryClient.invalidateQueries({
-        queryKey: ["all-offers", { cluster: cluster.id }],
+        queryKey: QueryKeys.all(),
       });
     },
     onError: (error) => {
@@ -257,7 +286,6 @@ export function useMakeOfferMutation() {
 export function useTakeOfferMutation() {
   const txSigner = useWalletUiSigner();
   const signAndSend = useWalletTransactionSignAndSend();
-  const { cluster } = useWalletUi();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -306,7 +334,7 @@ export function useTakeOfferMutation() {
       toast.success("Offer taken successfully!");
       toastTx(signature);
       queryClient.invalidateQueries({
-        queryKey: ["all-offers", { cluster: cluster.id }],
+        queryKey: QueryKeys.all(),
       });
     },
     onError: (error) => {
@@ -352,7 +380,7 @@ export function useRefundOfferMutation() {
       toast.success("Offer refunded successfully!");
       toastTx(signature);
       queryClient.invalidateQueries({
-        queryKey: ["all-offers", { cluster: cluster.id }],
+        queryKey: QueryKeys.all(),
       });
     },
     onError: (error) => {
