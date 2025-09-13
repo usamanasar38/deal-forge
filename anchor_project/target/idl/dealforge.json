@@ -762,6 +762,16 @@
     },
     {
       "code": 6008,
+      "name": "InvalidOfferedMintAmount",
+      "msg": "Invalid offered mint amount"
+    },
+    {
+      "code": 6009,
+      "name": "InvalidRequestedMintAmount",
+      "msg": "Invalid requested min amount"
+    },
+    {
+      "code": 6010,
       "name": "UnauthorizedMaker",
       "msg": "unauthorized maker"
     }

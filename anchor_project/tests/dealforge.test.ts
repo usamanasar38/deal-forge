@@ -4,6 +4,8 @@ import { getAssociatedTokenAccountAddress } from "gill/programs";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   DEALFORGE_ERROR__INSUFFICIENT_BALANCE,
+  DEALFORGE_ERROR__INVALID_OFFERED_MINT_AMOUNT,
+  DEALFORGE_ERROR__INVALID_REQUESTED_MINT_AMOUNT,
   fetchOffer,
   getRefundOfferInstructionAsync,
   getTakeOfferInstructionAsync,
@@ -125,22 +127,42 @@ describe("dealforge", () => {
       );
     });
 
-    it("should fail to make offer when maker has insufficient token balance", async () => {
-      const tooManyTokens = 1_000n * ONE_MINT_TOKEN;
-
-      await expect(
-        createTestOffer({
-          maker: data.maker,
-          offeredMint: data.offeredMint,
-          requestedMint: data.requestedMint,
-          makerTokenAccount: data.makerOfferedTokenAccount,
-          tokenOfferedAmount: tooManyTokens,
-          tokenRequestedAmount: tokenBWantedAmount,
-          skipPreflight: true,
-        })
-        // insufficient funds error
-      ).rejects.toThrow(`${CUSTOM_FUNDS_ERROR_MESSAGE}1`);
-    });
+    it.concurrent.for([
+      {
+        offeredAmount: 1_00000n * ONE_MINT_TOKEN,
+        requestedAmount: 1n,
+        expectedError: DEALFORGE_ERROR__INSUFFICIENT_BALANCE,
+      },
+      {
+        offeredAmount: 0n,
+        requestedAmount: 1n,
+        expectedError: DEALFORGE_ERROR__INVALID_OFFERED_MINT_AMOUNT,
+      },
+      {
+        offeredAmount: 1_000n * ONE_MINT_TOKEN,
+        requestedAmount: 0n,
+        expectedError: DEALFORGE_ERROR__INVALID_REQUESTED_MINT_AMOUNT,
+      },
+    ])(
+      "should fail to make offer when maker offered token are 0",
+      async (
+        { offeredAmount, requestedAmount, expectedError },
+        { expect: localExpect }
+      ) => {
+        await localExpect(
+          createTestOffer({
+            maker: data.maker,
+            offeredMint: data.offeredMint,
+            requestedMint: data.requestedMint,
+            makerTokenAccount: data.makerOfferedTokenAccount,
+            tokenOfferedAmount: offeredAmount,
+            tokenRequestedAmount: requestedAmount,
+            skipPreflight: true,
+          })
+          // insufficient funds error
+        ).rejects.toThrow(`${CUSTOM_FUNDS_ERROR_MESSAGE}${expectedError}`);
+      }
+    );
   });
 
   describe("takeOffer", () => {

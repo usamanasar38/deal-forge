@@ -18,6 +18,10 @@ pub enum DealForgeError {
     OfferAlreadyFulfilled,
     #[msg("Offer expired")]
     OfferExpired,
+    #[msg("Invalid offered mint amount")]
+    InvalidOfferedMintAmount,
+    #[msg("Invalid requested min amount")]
+    InvalidRequestedMintAmount,
     #[msg("unauthorized maker")]
     UnauthorizedMaker,
 }

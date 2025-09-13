@@ -768,6 +768,16 @@ export type Dealforge = {
     },
     {
       "code": 6008,
+      "name": "invalidOfferedMintAmount",
+      "msg": "Invalid offered mint amount"
+    },
+    {
+      "code": 6009,
+      "name": "invalidRequestedMintAmount",
+      "msg": "Invalid requested min amount"
+    },
+    {
+      "code": 6010,
       "name": "unauthorizedMaker",
       "msg": "unauthorized maker"
     }

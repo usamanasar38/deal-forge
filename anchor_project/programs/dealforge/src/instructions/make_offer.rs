@@ -25,7 +25,6 @@ pub struct MakeOffer<'info> {
         associated_token::mint = offered_mint,
         associated_token::authority = maker,
         associated_token::token_program = token_program,
-        constraint = maker_offered_ata.amount >= offer.offered_amount @ DealForgeError::InsufficientBalance,
     )]
     pub maker_offered_ata: InterfaceAccount<'info, TokenAccount>,
 
@@ -58,6 +57,22 @@ pub fn handler(
     offered_amount: u64,
     requested_amount: u64,
 ) -> Result<()> {
+    msg!("offeredAmount: {} {}", offered_amount > 0, offered_amount);
+    msg!(
+        "requested_amount: {} {}",
+        requested_amount > 0,
+        requested_amount
+    );
+    require!(offered_amount > 0, DealForgeError::InvalidOfferedMintAmount);
+    require!(
+        requested_amount > 0,
+        DealForgeError::InvalidRequestedMintAmount
+    );
+
+    require!(
+        context.accounts.maker_offered_ata.amount >= offered_amount,
+        DealForgeError::InsufficientBalance
+    );
     transfer_tokens(
         &context.accounts.maker_offered_ata,
         &context.accounts.vault,

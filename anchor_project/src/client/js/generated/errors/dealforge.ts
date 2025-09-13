@@ -30,13 +30,19 @@ export const DEALFORGE_ERROR__EXCEEDS_AVAILABLE_QUANTITY = 0x1775; // 6005
 export const DEALFORGE_ERROR__OFFER_ALREADY_FULFILLED = 0x1776; // 6006
 /** OfferExpired: Offer expired */
 export const DEALFORGE_ERROR__OFFER_EXPIRED = 0x1777; // 6007
+/** InvalidOfferedMintAmount: Invalid offered mint amount */
+export const DEALFORGE_ERROR__INVALID_OFFERED_MINT_AMOUNT = 0x1778; // 6008
+/** InvalidRequestedMintAmount: Invalid requested min amount */
+export const DEALFORGE_ERROR__INVALID_REQUESTED_MINT_AMOUNT = 0x1779; // 6009
 /** UnauthorizedMaker: unauthorized maker */
-export const DEALFORGE_ERROR__UNAUTHORIZED_MAKER = 0x1778; // 6008
+export const DEALFORGE_ERROR__UNAUTHORIZED_MAKER = 0x177a; // 6010
 
 export type DealforgeError =
   | typeof DEALFORGE_ERROR__CALCULATION_OVERFLOW
   | typeof DEALFORGE_ERROR__EXCEEDS_AVAILABLE_QUANTITY
   | typeof DEALFORGE_ERROR__INSUFFICIENT_BALANCE
+  | typeof DEALFORGE_ERROR__INVALID_OFFERED_MINT_AMOUNT
+  | typeof DEALFORGE_ERROR__INVALID_REQUESTED_MINT_AMOUNT
   | typeof DEALFORGE_ERROR__INVALID_SALE_TOKEN
   | typeof DEALFORGE_ERROR__OFFER_ALREADY_FULFILLED
   | typeof DEALFORGE_ERROR__OFFER_EXPIRED
@@ -50,6 +56,8 @@ if (process.env.NODE_ENV !== 'production') {
     [DEALFORGE_ERROR__CALCULATION_OVERFLOW]: `Calculation overflow`,
     [DEALFORGE_ERROR__EXCEEDS_AVAILABLE_QUANTITY]: `Exceeds available quantity`,
     [DEALFORGE_ERROR__INSUFFICIENT_BALANCE]: `Insufficient token balance`,
+    [DEALFORGE_ERROR__INVALID_OFFERED_MINT_AMOUNT]: `Invalid offered mint amount`,
+    [DEALFORGE_ERROR__INVALID_REQUESTED_MINT_AMOUNT]: `Invalid requested min amount`,
     [DEALFORGE_ERROR__INVALID_SALE_TOKEN]: `Invalid sale token`,
     [DEALFORGE_ERROR__OFFER_ALREADY_FULFILLED]: `Offer already fulfilled`,
     [DEALFORGE_ERROR__OFFER_EXPIRED]: `Offer expired`,
