@@ -26,19 +26,19 @@ import { useMakeOfferMutation } from "./dealforge-data-access";
 const offerFormSchema = z.object({
   offeredMint: z.string().min(1, "Offered token mint is required"),
   requestedMint: z.string().min(1, "Requested token mint is required"),
-  offeredAmount: z
-    .string()
-    .min(1, "Offered amount is required")
-    .transform((val) => Number.parseFloat(val))
-    .pipe(z.number().gt(0, "Offered amount should be greater than 0")),
-  requestedAmount: z
-    .string()
-    .min(1, "Requested amount is required")
-    .transform((val) => Number.parseFloat(val))
-    .pipe(z.number().gt(0, "Requested amount should be greater than 0")),
+  offeredAmount: z.coerce
+    .number({
+      error: "Offered amount is required",
+    })
+    .gt(0, "Offered amount should be greater than 0"),
+  requestedAmount: z.coerce
+    .number({
+      error: "Requested amount is required",
+    })
+    .gt(0, "Requested amount should be greater than 0"),
 });
-
 type OfferFormData = z.infer<typeof offerFormSchema>;
+type OfferFormDataInput = z.input<typeof offerFormSchema>;
 
 interface OfferFormProps {
   readonly onSuccess?: () => void;
@@ -48,13 +48,13 @@ export function OfferForm({ onSuccess }: OfferFormProps) {
   const { mutate: makeOfferMutation, isPending: isLoading } =
     useMakeOfferMutation();
 
-  const form = useForm<OfferFormData>({
+  const form = useForm<OfferFormDataInput, unknown, OfferFormData>({
     resolver: zodResolver(offerFormSchema),
     defaultValues: {
       offeredMint: "",
       requestedMint: "",
-      offeredAmount: "",
-      requestedAmount: "",
+      offeredAmount: 0,
+      requestedAmount: 0,
     },
   });
 
@@ -67,7 +67,6 @@ export function OfferForm({ onSuccess }: OfferFormProps) {
       const offeredMint = address(data.offeredMint);
       const requestedMint = address(data.requestedMint);
 
-      // Convert amounts to bigint (assuming 9 decimals)
       const offeredAmount = data.offeredAmount;
       const requestedAmount = data.requestedAmount;
 
@@ -133,6 +132,7 @@ export function OfferForm({ onSuccess }: OfferFormProps) {
                       type="number"
                       {...field}
                       disabled={isLoading}
+                      value={String(field.value)}
                     />
                   </FormControl>
                   <FormMessage />
@@ -171,6 +171,7 @@ export function OfferForm({ onSuccess }: OfferFormProps) {
                       type="number"
                       {...field}
                       disabled={isLoading}
+                      value={String(field.value)}
                     />
                   </FormControl>
                   <FormMessage />
